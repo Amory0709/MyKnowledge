@@ -1,0 +1,97 @@
+[
+  {
+    "id": "computer-colors",
+    "title": "计算机颜色",
+    "titleEn": "Computer Colors",
+    "category": "计算机科学",
+    "categoryEn": "Computer Science",
+    "tags": ["颜色", "RGB", "HEX", "HSL", "可视化", "交互"],
+    "public": true,
+    "componentType": "color-explorer",
+    "summary": "探索计算机如何用数字描述世界上所有的颜色。从 RGB 到 HEX 到 HSL，每种格式都有它的故事。",
+    "summaryEn": "Explore how computers describe every color in the world using numbers. From RGB to HEX to HSL, each format tells its own story.",
+    "emoji": "🎨",
+    "difficulty": "beginner",
+    "readTime": 5,
+    "data": {
+      "colorFormats": ["RGB", "HEX", "HSL", "OKLCH"],
+      "funFacts": [
+        {
+          "id": 1,
+          "title": "256 的魔法",
+          "content": "计算机用 8 位二进制存储每个颜色通道，也就是 2⁸ = 256 个可能的值（0-255）。三个通道合在一起，可以表示 256³ ≈ 1680 万种颜色。",
+          "icon": "🔢"
+        },
+        {
+          "id": 2,
+          "title": "HEX 是 RGB 的伪装",
+          "content": "#FF5733 其实就是 RGB(255, 87, 51)。前两位是红色，中间两位是绿色，后两位是蓝色，只不过用十六进制写出来更短。",
+          "icon": "🎭"
+        },
+        {
+          "id": 3,
+          "title": "HSL 更像人类思维",
+          "content": "RGB 是给机器看的，HSL（色相/饱和度/亮度）是给人类设计师看的。想要「深一点的同色」？只需要降低 L 值就好。",
+          "icon": "🧠"
+        },
+        {
+          "id": 4,
+          "title": "屏幕是减法艺术家",
+          "content": "打印机用 CMYK（减色混合），屏幕用 RGB（加色混合）。把所有光加在一起得到白色；把所有颜料加在一起得到黑色。",
+          "icon": "💡"
+        },
+        {
+          "id": 5,
+          "title": "OKLCH：颜色的未来",
+          "content": "CSS 新增的 OKLCH 颜色格式基于人眼的感知，让「等量」的颜色变化在视觉上真的「看起来一样」。这是下一代设计系统的基础。",
+          "icon": "🚀"
+        }
+      ]
+    }
+  },
+  {
+    "id": "binary-numbers",
+    "title": "二进制的世界",
+    "titleEn": "World of Binary",
+    "category": "计算机科学",
+    "categoryEn": "Computer Science",
+    "tags": ["二进制", "数字", "基础", "编程"],
+    "public": true,
+    "componentType": "coming-soon",
+    "summary": "一切都是 0 和 1——但这怎么可能代表文字、图片、音乐？揭开二进制的神秘面纱。",
+    "emoji": "01",
+    "difficulty": "beginner",
+    "readTime": 6,
+    "data": {}
+  },
+  {
+    "id": "sorting-algorithms",
+    "title": "排序算法可视化",
+    "titleEn": "Sorting Algorithms",
+    "category": "算法",
+    "categoryEn": "Algorithms",
+    "tags": ["排序", "算法", "可视化", "冒泡排序", "快速排序"],
+    "public": true,
+    "componentType": "coming-soon",
+    "summary": "看着数字「跳舞」，理解为什么有些排序方式天才，有些则低效。动画让算法活起来。",
+    "emoji": "📊",
+    "difficulty": "intermediate",
+    "readTime": 8,
+    "data": {}
+  },
+  {
+    "id": "fourier-transform",
+    "title": "傅里叶变换",
+    "titleEn": "Fourier Transform",
+    "category": "数学",
+    "categoryEn": "Mathematics",
+    "tags": ["数学", "信号", "频率", "音频"],
+    "public": false,
+    "componentType": "coming-soon",
+    "summary": "任何复杂的波形都可以分解为简单正弦波的叠加——这个思想改变了整个工程世界。",
+    "emoji": "〰️",
+    "difficulty": "advanced",
+    "readTime": 12,
+    "data": {}
+  }
+]
