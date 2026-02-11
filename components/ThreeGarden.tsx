@@ -204,9 +204,10 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       const scene = new THREE.Scene()
       scene.fog = new THREE.FogExp2(0xc8dff5, 0.005)
 
-      const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 2000)
-      camera.position.set(0, 8, 55)
-      camera.lookAt(0, 12, 0)
+      // Camera: standing in the meadow, looking up at mountain (matches reference photo)
+      const camera = new THREE.PerspectiveCamera(62, w / h, 0.1, 2000)
+      camera.position.set(0, 2.5, 48)
+      camera.lookAt(0, 18, 0)
 
       // ── Sky ──
       const sky = new Sky()
@@ -239,12 +240,13 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       scene.add(new THREE.HemisphereLight(0x87ceeb, 0x4a7a3a, 0.8))
 
       // ── Mountain ──
-      const mRes = 200
-      const mGeo = new THREE.PlaneGeometry(180, 180, mRes - 1, mRes - 1)
+      const mRes = 220
+      // Wider and deeper terrain to fill the view
+      const mGeo = new THREE.PlaneGeometry(240, 220, mRes - 1, mRes - 1)
       mGeo.rotateX(-Math.PI / 2)
       const positions = mGeo.attributes.position.array as Float32Array
       const dispArr = new Float32Array(positions.length / 3)
-      const maxH = 55
+      const maxH = 72 // Taller mountain
 
       function snoise(x: number, z: number, octaves = 6): number {
         let v = 0, a = 1, f = 1, max = 0
@@ -259,10 +261,14 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
       for (let i = 0; i < dispArr.length; i++) {
         const vx = positions[i * 3], vz = positions[i * 3 + 2]
-        const dist = Math.sqrt(vx * vx + vz * vz) / 60
-        const mountain = Math.max(0, 1 - dist * dist) * snoise(vx * 0.035, vz * 0.035, 8)
-        const detail = snoise(vx * 0.12, vz * 0.12, 4) * 0.15
-        dispArr[i] = (mountain + detail) * maxH
+        // Mountain centered slightly behind (negative z = further back)
+        const mz = vz + 20 // shift mountain center backward
+        const dist = Math.sqrt(vx * vx * 0.8 + mz * mz) / 55
+        const mountain = Math.max(0, 1 - dist * dist * 0.9) * snoise(vx * 0.032, mz * 0.032, 8)
+        const detail = snoise(vx * 0.1, vz * 0.1, 4) * 0.12
+        // Flatten the foreground (where camera/meadow is)
+        const foregroundFlatten = Math.max(0, (vz - 15) / 30) // flat from z=15 onward
+        dispArr[i] = Math.max(0, (mountain - foregroundFlatten * 0.7 + detail)) * maxH
         positions[i * 3 + 1] = dispArr[i]
       }
       mGeo.computeVertexNormals()
@@ -314,16 +320,18 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       const flowerMats = flowerColors.map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7 }))
 
       for (let i = 0; i < FLOWER_COUNT; i++) {
-        const angle = seeded(i * 7) * Math.PI * 2
-        const r = 18 + seeded(i * 11) * 28
-        const fx = Math.cos(angle) * r + (seeded(i * 3) - 0.5) * 15
-        const fz = Math.sin(angle) * r * 0.6 + 15 + (seeded(i * 5) - 0.5) * 15
-        // Sample height
-        const heightSample = snoise(fx * 0.035, fz * 0.035, 8)
-        const distSample = Math.sqrt(fx * fx + fz * fz) / 60
-        const fy = Math.max(0, 1 - distSample * distSample) * heightSample * maxH
+        // Spread across the foreground meadow in front of camera
+        const fx = (seeded(i * 7) - 0.5) * 90
+        // Z: mostly in front of camera (z=20 to z=50), with some further back
+        const fz = 18 + seeded(i * 11) * 32
+        // Sample height — foreground is fairly flat
+        const mz = fz + 20
+        const distSample = Math.sqrt(fx * fx * 0.8 + mz * mz) / 55
+        const foregroundFlatten = Math.max(0, (fz - 15) / 30)
+        const heightSample = snoise(fx * 0.032, mz * 0.032, 8)
+        const fy = Math.max(0, (Math.max(0, 1 - distSample * distSample * 0.9) * heightSample - foregroundFlatten * 0.7) * maxH)
 
-        if (fy > maxH * 0.5) continue // Don't place on peaks
+        if (fy > maxH * 0.4) continue // Don't place on steep slopes
 
         const stem = new THREE.Mesh(stemGeo, stemMat)
         stem.position.set(fx, fy + 0.6, fz)
@@ -358,15 +366,16 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
       entries.forEach((entry, i) => {
         const seed = entry.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-        const spread = 0.08 + (i / Math.max(entries.length - 1, 1)) * 0.84
-        const angle = spread * Math.PI * 1.4 - Math.PI * 0.2
-        const r = 20 + seeded(seed) * 14
-        const fx = Math.cos(angle) * r + (seeded(seed + 1) - 0.5) * 8
-        const fz = Math.sin(angle) * r * 0.5 + 18 + (seeded(seed + 2) - 0.5) * 6
+        // Spread knowledge flowers across foreground meadow, left to right
+        const spread = 0.05 + (i / Math.max(entries.length - 1, 1)) * 0.90
+        const fx = (spread - 0.5) * 80 + (seeded(seed + 1) - 0.5) * 10
+        const fz = 22 + seeded(seed + 2) * 20 // In the meadow, in front
 
-        const distS = Math.sqrt(fx * fx + fz * fz) / 60
-        const heightS = snoise(fx * 0.035, fz * 0.035, 8)
-        const fy = Math.max(0, 1 - distS * distS) * heightS * maxH
+        const mzS = fz + 20
+        const distS = Math.sqrt(fx * fx * 0.8 + mzS * mzS) / 55
+        const foregroundFlattenS = Math.max(0, (fz - 15) / 30)
+        const heightS = snoise(fx * 0.032, mzS * 0.032, 8)
+        const fy = Math.max(0, (Math.max(0, 1 - distS * distS * 0.9) * heightS - foregroundFlattenS * 0.7) * maxH)
 
         const color = CATEGORY_COLORS_3D[entry.category] ?? DEFAULT_3D
         const group = new THREE.Group()
@@ -427,10 +436,10 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
         cloudMat.uniforms.uTime.value = t
         cloudMat.uniforms.uCamPos.value.copy(camera.position)
 
-        // Camera gentle drift
-        camera.position.x = Math.sin(t * 0.04) * 2.5
-        camera.position.y = 8 + Math.sin(t * 0.06) * 0.5
-        camera.lookAt(Math.sin(t * 0.03) * 1.5, 12, 0)
+        // Camera: gentle drift at meadow level, looking up at mountain
+        camera.position.x = Math.sin(t * 0.03) * 1.8
+        camera.position.y = 2.5 + Math.sin(t * 0.05) * 0.3
+        camera.lookAt(Math.sin(t * 0.025) * 1.2, 18, 0)
 
         // Raycasting for knowledge flowers
         raycaster.setFromCamera(mouse, camera)
