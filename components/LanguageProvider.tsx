@@ -1,28 +1,19 @@
 'use client'
-
 import { createContext, useContext, useState } from 'react'
 
 export type Lang = 'zh' | 'en'
 
-interface LangContextType {
-  lang: Lang
-  setLang: (l: Lang) => void
-  t: (zh: string, en: string) => string
-}
-
-const LangContext = createContext<LangContextType>({
+const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
   lang: 'zh',
   setLang: () => {},
-  t: (zh) => zh,
 })
 
 export const useLang = () => useContext(LangContext)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>('zh')
-  const t = (zh: string, en: string) => lang === 'zh' ? zh : en
+  const [lang, setLang] = useState<Lang>('en')
   return (
-    <LangContext.Provider value={{ lang, setLang, t }}>
+    <LangContext.Provider value={{ lang, setLang }}>
       {children}
     </LangContext.Provider>
   )

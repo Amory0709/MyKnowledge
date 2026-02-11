@@ -1,213 +1,241 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { GardenCanvas } from '@/components/GardenCanvas'
+import dynamic from 'next/dynamic'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useLang } from '@/components/LanguageProvider'
 import entries from '@/data/entries.json'
 import type { KnowledgeEntry } from '@/types'
 
+// Load ThreeGarden only on client — Three.js requires browser APIs
+const GardenCanvas = dynamic(() => import('@/components/ThreeGarden').then(m => ({ default: m.ThreeGarden })), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'linear-gradient(180deg, #87CEEB 0%, #C8E8F5 60%, #6BAF3C 100%)',
+      }}
+    />
+  ),
+})
+
 const allEntries = entries as KnowledgeEntry[]
 
 export default function HomePage() {
   const router = useRouter()
-  const { lang, setLang, t } = useLang()
+  const { lang, setLang } = useLang()
   const [search, setSearch] = useState('')
-  const [showList, setShowList] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handlePlantClick = (id: string) => {
-    router.push(`/MyKnowledge/knowledge/${id}`)
+  const handleEntryClick = (id: string) => {
+    router.push(`/knowledge/${id}`)
   }
 
-  const filtered = allEntries.filter(e =>
-    !search ||
-    e.title.includes(search) ||
-    (e.titleEn ?? '').toLowerCase().includes(search.toLowerCase()) ||
-    e.tags.some(t => t.includes(search))
-  )
+  const totalCount = allEntries.length
 
   return (
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
-      {/* Canvas garden */}
-      <GardenCanvas
-        entries={allEntries}
-        onEntryClick={handlePlantClick}
-        searchFilter={search}
-        lang={lang}
-      />
-
-      {/* ── Top Nav ── */}
-      <nav
+    <>
+      {/* ── Full-viewport canvas backdrop ────────────────────────────── */}
+      <div
         style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 24px',
-          background: 'rgba(255,255,255,0.12)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🌸</span>
-          <span style={{ fontWeight: 700, fontSize: 16, color: '#1a3a1a', textShadow: '0 1px 3px rgba(255,255,255,0.8)' }}>
-            {t('知识花园', 'Knowledge Garden')}
+        <GardenCanvas
+          entries={allEntries}
+          onEntryClick={handleEntryClick}
+          searchFilter={search}
+          lang={lang}
+        />
+      </div>
+
+      {/* ── Floating top nav ─────────────────────────────────────────── */}
+      <nav
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 20px',
+          background: 'rgba(255, 255, 255, 0.12)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
+          boxShadow: '0 2px 24px rgba(0,0,0,0.08)',
+        }}
+      >
+        {/* Logo / title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '22px', lineHeight: 1 }}>🌸</span>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: '16px',
+              letterSpacing: '0.02em',
+              color: 'rgba(255,255,255,0.95)',
+              textShadow: '0 1px 8px rgba(0,0,0,0.25)',
+            }}
+          >
+            {lang === 'zh' ? '知识花园' : 'Knowledge Garden'}
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Right controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Language toggle */}
           <button
             onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
             style={{
-              padding: '6px 14px',
-              borderRadius: 20,
-              border: '1px solid rgba(255,255,255,0.4)',
-              background: 'rgba(255,255,255,0.25)',
-              color: '#1a3a1a',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              fontSize: '13px',
               fontWeight: 600,
-              fontSize: 13,
               cursor: 'pointer',
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              color: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s',
+              letterSpacing: '0.04em',
             }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.28)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
           >
             {lang === 'zh' ? 'EN' : '中'}
           </button>
+
           <ThemeSwitcher />
         </div>
       </nav>
 
-      {/* ── Bottom search + list toggle ── */}
+      {/* ── Bottom center: search pill ───────────────────────────────── */}
       <div
         style={{
-          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
-          width: 'min(480px, 90vw)',
+          position: 'fixed',
+          bottom: '32px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          width: 'min(420px, 90vw)',
         }}
       >
-        {/* Search pill */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+        <div
+          onClick={() => inputRef.current?.focus()}
           style={{
-            width: '100%',
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '10px 18px',
-            borderRadius: 999,
-            background: 'rgba(255,255,255,0.25)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.5)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 18px',
+            borderRadius: '50px',
+            background: 'rgba(255, 255, 255, 0.16)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.35)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.08) inset',
+            cursor: 'text',
           }}
         >
-          <span style={{ fontSize: 16, opacity: 0.7 }}>🔍</span>
+          <span style={{ fontSize: '16px', opacity: 0.8 }}>🔍</span>
           <input
+            ref={inputRef}
+            type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={t('在花园中寻找知识...', 'Search the garden...')}
+            placeholder={lang === 'zh' ? '搜索知识花园...' : 'Search the garden...'}
             style={{
-              flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              fontSize: 14, color: '#1a2a1a',
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: '14px',
+              color: 'rgba(255,255,255,0.95)',
+              fontFamily: 'inherit',
             }}
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: 12 }}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '22px',
+                height: '22px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.9)',
+                lineHeight: 1,
+              }}
             >
               ✕
             </button>
           )}
-        </motion.div>
-
-        {/* Entry count + list toggle */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button
-            onClick={() => setShowList(v => !v)}
-            style={{
-              padding: '5px 14px',
-              borderRadius: 999,
-              background: 'rgba(255,255,255,0.22)',
-              border: '1px solid rgba(255,255,255,0.4)',
-              backdropFilter: 'blur(8px)',
-              fontSize: 12,
-              color: '#1a3a1a',
-              cursor: 'pointer',
-            }}
-          >
-            🌱 {allEntries.length} {t('块知识', 'entries')} {showList ? '▲' : '▼'}
-          </button>
         </div>
 
-        {/* List drawer */}
-        <AnimatePresence>
-          {showList && (
-            <motion.div
-              initial={{ opacity: 0, y: 12, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.97 }}
-              style={{
-                width: '100%',
-                background: 'rgba(255,255,255,0.22)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.45)',
-                borderRadius: 20,
-                padding: 12,
-                maxHeight: 240,
-                overflowY: 'auto',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-              }}
-            >
-              {filtered.map(entry => (
-                <button
-                  key={entry.id}
-                  onClick={() => handlePlantClick(entry.id)}
-                  style={{
-                    width: '100%', textAlign: 'left',
-                    padding: '8px 12px', borderRadius: 12,
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                >
-                  <span style={{ fontSize: 20 }}>{entry.emoji ?? '🌿'}</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1a2a1a' }}>
-                      {lang === 'zh' ? entry.title : (entry.titleEn ?? entry.title)}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#3a5a3a', opacity: 0.7 }}>{entry.category}</div>
-                  </div>
-                  {!entry.public && <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.5 }}>🔒</span>}
-                </button>
-              ))}
-              {filtered.length === 0 && (
-                <div style={{ textAlign: 'center', padding: 16, color: '#3a5a3a', fontSize: 13 }}>
-                  {t('没找到匹配的知识', 'No matching entries')}
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Hint text */}
+        {!search && (
+          <p
+            style={{
+              textAlign: 'center',
+              marginTop: '8px',
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.55)',
+              letterSpacing: '0.06em',
+              textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            }}
+          >
+            {lang === 'zh'
+              ? '点击花朵探索知识 · 搜索过滤'
+              : 'Click a flower to explore · Type to filter'}
+          </p>
+        )}
       </div>
 
-      {/* Hint text */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
+      {/* ── Bottom-right: entry count badge ──────────────────────────── */}
+      <div
         style={{
-          position: 'fixed', bottom: 130, left: '50%', transform: 'translateX(-50%)',
-          fontSize: 12, color: 'rgba(30,50,30,0.55)',
-          textShadow: '0 1px 3px rgba(255,255,255,0.7)',
-          whiteSpace: 'nowrap', zIndex: 5,
-          pointerEvents: 'none',
+          position: 'fixed',
+          bottom: '32px',
+          right: '20px',
+          zIndex: 10,
+          padding: '8px 14px',
+          borderRadius: '20px',
+          background: 'rgba(255, 255, 255, 0.14)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.28)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
         }}
       >
-        {t('✨ 悬停在花朵上探索知识', '✨ Hover over flowers to explore')}
-      </motion.p>
-    </div>
+        <span style={{ fontSize: '14px' }}>🌱</span>
+        <span
+          style={{
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.88)',
+            letterSpacing: '0.04em',
+            textShadow: '0 1px 4px rgba(0,0,0,0.2)',
+          }}
+        >
+          {totalCount} {lang === 'zh' ? '条知识' : 'entries'}
+        </span>
+      </div>
+    </>
   )
 }

@@ -1,444 +1,644 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useRef } from 'react'
+import Sketch from 'react-p5'
+import type P5 from 'p5'
 import type { KnowledgeEntry } from '@/types'
 
-interface Plant {
-  entry: KnowledgeEntry
-  x: number
-  y: number
-  baseY: number
-  size: number
-  color: [number, number, number]
-  glowColor: [number, number, number]
-  swayOffset: number
-  swaySpeed: number
-  hovered: boolean
-  stemHeight: number
-}
+// ─── Prop types ────────────────────────────────────────────────────────────
 
-interface Cloud {
-  x: number
-  y: number
-  size: number
-  speed: number
-  opacity: number
-}
-
-interface Wildflower {
-  x: number
-  y: number
-  size: number
-  type: number // 0=iris, 1=cotton, 2=purple, 3=yellow
-  swayOffset: number
-}
-
-interface GardenCanvasProps {
+export interface GardenCanvasProps {
   entries: KnowledgeEntry[]
   onEntryClick: (id: string) => void
   searchFilter: string
   lang: 'zh' | 'en'
 }
 
-const CATEGORY_COLORS: Record<string, [number, number, number]> = {
-  '计算机科学': [0, 180, 255],
-  '算法': [160, 100, 230],
-  '数学': [255, 200, 50],
-  '设计': [255, 150, 180],
-}
-const DEFAULT_COLOR: [number, number, number] = [100, 220, 150]
+// ─── Internal types ────────────────────────────────────────────────────────
 
-function seededRandom(seed: number) {
-  const x = Math.sin(seed + 1) * 10000
+interface BgFlower {
+  x: number
+  y: number
+  colorIdx: number
+  size: number
+  noiseOff: number
+  type: number  // 0 = circle bloom, 1 = petals, 2 = star cluster
+}
+
+interface CloudCircle {
+  dx: number
+  dy: number
+  r: number
+}
+
+interface Cloud {
+  x: number
+  y: number
+  speed: number
+  alpha: number
+  circles: CloudCircle[]
+}
+
+interface KnowledgePlant {
+  x: number
+  baseY: number
+  entry: KnowledgeEntry
+  color: [number, number, number]
+  glowColor: [number, number, number]
+  noiseOff: number
+}
+
+interface PineTree {
+  x: number
+  hillBase: number
+  height: number
+  width: number
+}
+
+interface GardenState {
+  bgFlowers: BgFlower[]
+  clouds: Cloud[]
+  plants: KnowledgePlant[]
+  pines1: PineTree[]
+  pines2: PineTree[]
+  hoveredIdx: number
+  frame: number
+  W: number
+  H: number
+}
+
+// ─── Visual constants ──────────────────────────────────────────────────────
+
+const FLOWER_COLORS = [
+  '#6B9FD4', // blue iris
+  '#9B7FD4', // purple lavender
+  '#F0F0F0', // white
+  '#F0D060', // yellow
+  '#7CBFDA', // sky blue
+  '#C4A0E8', // soft violet
+  '#A0D080', // pale green
+  '#FFB7C5', // cherry pink
+]
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function hexToRgb(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ]
+}
+
+function categoryColor(cat: string): { color: string; glow: string } {
+  switch (cat) {
+    case '计算机科学': return { color: '#00E5FF', glow: '#00B8D4' }
+    case '算法':       return { color: '#CE93D8', glow: '#AB47BC' }
+    case '数学':       return { color: '#FFD54F', glow: '#FFA000' }
+    default:           return { color: '#F48FB1', glow: '#E91E8C' }
+  }
+}
+
+function hashId(id: string): number {
+  let h = 5381
+  for (let i = 0; i < id.length; i++) {
+    h = (((h << 5) + h) + id.charCodeAt(i)) & 0x7fffffff
+  }
+  return h
+}
+
+// Deterministic random from seed + salt
+function seededRng(seed: number, salt: number): number {
+  const x = Math.sin(seed * 127.1 + salt * 311.7) * 43758.5453123
   return x - Math.floor(x)
 }
 
-export function GardenCanvas({ entries, onEntryClick, searchFilter, lang }: GardenCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const plantsRef = useRef<Plant[]>([])
-  const cloudsRef = useRef<Cloud[]>([])
-  const wildflowersRef = useRef<Wildflower[]>([])
-  const frameRef = useRef(0)
-  const rafRef = useRef<number>(0)
-  const mouseRef = useRef({ x: 0, y: 0 })
-  const hoveredIdRef = useRef<string | null>(null)
+// ─── Hill profile functions ────────────────────────────────────────────────
 
-  const initScene = useCallback((w: number, h: number) => {
-    const meadowY = h * 0.62
+function hill1Y(t: number, H: number): number {
+  return H * 0.535
+    - Math.sin(t * Math.PI * 2.5) * H * 0.032
+    + Math.sin(t * Math.PI * 1.3 + 0.4) * H * 0.024
+    + Math.cos(t * Math.PI * 3.7 + 1.1) * H * 0.014
+}
 
-    // Clouds
-    cloudsRef.current = Array.from({ length: 5 }, (_, i) => ({
-      x: (w / 5) * i + seededRandom(i * 7) * (w / 5),
-      y: h * 0.08 + seededRandom(i * 13) * h * 0.12,
-      size: 60 + seededRandom(i * 3) * 80,
-      speed: 0.15 + seededRandom(i * 11) * 0.2,
-      opacity: 0.7 + seededRandom(i * 5) * 0.3,
-    }))
+function hill2Y(t: number, H: number): number {
+  return H * 0.630
+    - Math.sin(t * Math.PI * 2.0 + 0.3) * H * 0.027
+    + Math.sin(t * Math.PI * 1.5 + 0.8) * H * 0.020
+    + Math.cos(t * Math.PI * 2.8 + 0.5) * H * 0.012
+}
 
-    // Wildflowers
-    const flowers: Wildflower[] = []
-    for (let i = 0; i < 280; i++) {
-      const t = i / 280
-      flowers.push({
-        x: seededRandom(i * 17) * w,
-        y: meadowY + seededRandom(i * 23) * h * 0.35,
-        size: 3 + seededRandom(i * 7) * 5,
-        type: Math.floor(seededRandom(i * 11) * 4),
-        swayOffset: seededRandom(i * 3) * Math.PI * 2,
-      })
-    }
-    wildflowersRef.current = flowers
+function hill3Y(t: number, H: number): number {
+  return H * 0.700
+    - Math.sin(t * Math.PI * 1.8 + 0.5) * H * 0.022
+    + Math.sin(t * Math.PI * 2.5 + 1.2) * H * 0.014
+    + Math.cos(t * Math.PI * 1.2 + 0.8) * H * 0.010
+}
 
-    // Knowledge plants
-    const plants: Plant[] = entries.map((entry, i) => {
-      const seed = entry.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
-      const spread = 0.1 + (i / Math.max(entries.length - 1, 1)) * 0.8
-      const xJitter = (seededRandom(seed) - 0.5) * 0.12
-      const x = w * Math.max(0.05, Math.min(0.95, spread + xJitter))
-      const yBase = meadowY + h * 0.05 + seededRandom(seed + 1) * h * 0.12
-      const color = CATEGORY_COLORS[entry.category] ?? DEFAULT_COLOR
-      const glow: [number, number, number] = [
-        Math.min(255, color[0] + 80),
-        Math.min(255, color[1] + 80),
-        Math.min(255, color[2] + 80),
-      ]
-      return {
-        entry,
-        x,
-        y: yBase,
-        baseY: yBase,
-        size: 22 + seededRandom(seed + 2) * 10,
-        color,
-        glowColor: glow,
-        swayOffset: seededRandom(seed + 3) * Math.PI * 2,
-        swaySpeed: 0.4 + seededRandom(seed + 4) * 0.4,
-        hovered: false,
-        stemHeight: 28 + seededRandom(seed + 5) * 20,
-      }
+// ─── Drawing helpers ───────────────────────────────────────────────────────
+
+function drawPine(p5: P5, x: number, baseY: number, h: number, w: number, col: [number, number, number]) {
+  p5.noStroke()
+  p5.fill(col[0], col[1], col[2])
+  // Three tiers: bottom widest, top narrowest
+  p5.triangle(x, baseY - h, x - w, baseY, x + w, baseY)
+  p5.fill(col[0] - 8, col[1] - 10, col[2] - 5)
+  p5.triangle(x, baseY - h * 0.80, x - w * 0.75, baseY - h * 0.28, x + w * 0.75, baseY - h * 0.28)
+  p5.fill(col[0] + 6, col[1] + 8, col[2] + 4)
+  p5.triangle(x, baseY - h * 0.58, x - w * 0.50, baseY - h * 0.48, x + w * 0.50, baseY - h * 0.48)
+  // Trunk
+  p5.fill(col[0] * 0.45, col[1] * 0.35, col[2] * 0.25)
+  p5.rect(x - w * 0.09, baseY, w * 0.18, h * 0.13)
+}
+
+function drawHillShape(p5: P5, hillFn: (t: number, H: number) => number, W: number, H: number) {
+  const numPts = 60
+  p5.beginShape()
+  p5.vertex(0, H + 2)
+  const startY = hillFn(0, H)
+  p5.vertex(0, startY)
+  for (let i = 1; i <= numPts; i++) {
+    const t = i / numPts
+    p5.vertex(t * W, hillFn(t, H))
+  }
+  p5.vertex(W, H + 2)
+  p5.endShape(p5.CLOSE)
+}
+
+// ─── State factory ─────────────────────────────────────────────────────────
+
+function createState(p5: P5, W: number, H: number, entries: KnowledgeEntry[]): GardenState {
+  const meadowY = H * 0.65
+
+  // 350 background wildflowers in the meadow
+  const bgFlowers: BgFlower[] = []
+  for (let i = 0; i < 350; i++) {
+    bgFlowers.push({
+      x: p5.random(0, W),
+      y: p5.random(meadowY + 12, H - 8),
+      colorIdx: Math.floor(p5.random(0, FLOWER_COLORS.length)),
+      size: p5.random(2.5, 6.5),
+      noiseOff: p5.random(0, 1000),
+      type: Math.floor(p5.random(0, 3)),
     })
-    plantsRef.current = plants
-  }, [entries])
+  }
 
-  const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number, frame: number) => {
-    const t = frame * 0.008
-    const meadowTop = h * 0.58
-    const meadowY = h * 0.62
-    ctx.clearRect(0, 0, w, h)
+  // 4 large, puffy clouds
+  const makeCloud = (cx: number, cy: number, speed: number, alpha: number, scale: number): Cloud => ({
+    x: cx, y: cy, speed, alpha,
+    circles: [
+      { dx: 0,          dy: 0,           r: 48 * scale },
+      { dx: 40 * scale, dy: -18 * scale, r: 40 * scale },
+      { dx: 74 * scale, dy: 4 * scale,   r: 44 * scale },
+      { dx: 104 * scale,dy: -10 * scale, r: 34 * scale },
+      { dx: 22 * scale, dy: 15 * scale,  r: 30 * scale },
+      { dx: 58 * scale, dy: 18 * scale,  r: 26 * scale },
+    ],
+  })
+  const clouds: Cloud[] = [
+    makeCloud(W * 0.10, H * 0.09, 0.060, 240, 1.00),
+    makeCloud(W * 0.42, H * 0.07, 0.045, 218, 0.85),
+    makeCloud(W * 0.70, H * 0.09, 0.055, 228, 0.92),
+    makeCloud(W * 0.88, H * 0.13, 0.035, 198, 0.70),
+  ]
 
-    // ── Sky gradient ──
-    const sky = ctx.createLinearGradient(0, 0, 0, meadowTop)
-    sky.addColorStop(0, '#5BA3D9')
-    sky.addColorStop(0.4, '#82BDE8')
-    sky.addColorStop(0.75, '#B8D9F0')
-    sky.addColorStop(1, '#E8F4F8')
-    ctx.fillStyle = sky
-    ctx.fillRect(0, 0, w, meadowTop)
+  // Knowledge plants — one per entry, spread across the meadow
+  const plants: KnowledgePlant[] = entries.map((entry, i) => {
+    const h = hashId(entry.id)
+    const t = (i + 0.5) / Math.max(entries.length, 1)
+    const x = W * 0.08 + W * 0.84 * t + (seededRng(h, 1) - 0.5) * W * 0.07
+    const baseY = H * 0.68 + seededRng(h, 2) * H * 0.09
+    const { color, glow } = categoryColor(entry.category)
+    return {
+      x,
+      baseY,
+      entry,
+      color: hexToRgb(color),
+      glowColor: hexToRgb(glow),
+      noiseOff: seededRng(h, 3) * 1000,
+    }
+  })
 
-    // ── Clouds ──
-    for (const cloud of cloudsRef.current) {
-      cloud.x = (cloud.x + cloud.speed) % (w + 200) - 100
-      ctx.save()
-      ctx.globalAlpha = cloud.opacity * 0.85
-      const cx = cloud.x, cy = cloud.y, cs = cloud.size
-      for (const [dx, dy, dr] of [
-        [0, 0, cs * 0.6], [-cs * 0.5, cs * 0.1, cs * 0.45],
-        [cs * 0.5, cs * 0.1, cs * 0.45], [-cs * 0.25, -cs * 0.2, cs * 0.4],
-        [cs * 0.25, -cs * 0.2, cs * 0.4],
-      ] as [number, number, number][]) {
-        ctx.beginPath()
-        ctx.arc(cx + dx, cy + dy, dr, 0, Math.PI * 2)
-        ctx.fillStyle = '#FFFFFF'
-        ctx.fill()
+  // Pine trees on hill 1
+  const pines1: PineTree[] = []
+  for (let i = 0; i < 28; i++) {
+    const x = p5.random(10, W - 10)
+    pines1.push({
+      x,
+      hillBase: hill1Y(x / W, H) + p5.random(-4, 6),
+      height: p5.random(22, 46),
+      width: p5.random(12, 24),
+    })
+  }
+
+  // Pine trees on hill 2
+  const pines2: PineTree[] = []
+  for (let i = 0; i < 22; i++) {
+    const x = p5.random(10, W - 10)
+    pines2.push({
+      x,
+      hillBase: hill2Y(x / W, H) + p5.random(-3, 5),
+      height: p5.random(18, 36),
+      width: p5.random(10, 21),
+    })
+  }
+
+  return { bgFlowers, clouds, plants, pines1, pines2, hoveredIdx: -1, frame: 0, W, H }
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────
+
+export default function GardenCanvas({ entries, onEntryClick, searchFilter, lang }: GardenCanvasProps) {
+  const stateRef = useRef<GardenState | null>(null)
+  // Keep props current without requiring stable callbacks
+  const propsRef = useRef({ entries, onEntryClick, searchFilter, lang })
+  propsRef.current = { entries, onEntryClick, searchFilter, lang }
+
+  // ── setup ──────────────────────────────────────────────────────────────
+  const setup = (p5: P5, parentRef: Element) => {
+    const W = typeof window !== 'undefined' ? window.innerWidth : 1280
+    const H = typeof window !== 'undefined' ? window.innerHeight : 800
+    p5.createCanvas(W, H).parent(parentRef)
+    p5.frameRate(60)
+    stateRef.current = createState(p5, W, H, propsRef.current.entries)
+  }
+
+  // ── draw ───────────────────────────────────────────────────────────────
+  const draw = (p5: P5) => {
+    const state = stateRef.current
+    if (!state) return
+    const { W, H, bgFlowers, clouds, plants, pines1, pines2 } = state
+    const { searchFilter: sf, lang: currentLang } = propsRef.current
+    const T = state.frame * 0.008
+
+    const ctx = p5.drawingContext as CanvasRenderingContext2D
+
+    // ── SKY gradient ──────────────────────────────────────────────────────
+    const skyH = H * 0.60
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, skyH)
+    skyGrad.addColorStop(0.00, '#5EB5DC')  // deep sky blue at zenith
+    skyGrad.addColorStop(0.35, '#87CEEB')  // classic sky blue
+    skyGrad.addColorStop(0.72, '#C8E8F5')  // pale near horizon
+    skyGrad.addColorStop(1.00, '#E8F4F8')  // near-white horizon haze
+    ctx.fillStyle = skyGrad
+    ctx.fillRect(0, 0, W, skyH)
+
+    // Atmospheric light bloom at horizon
+    const horizonGrad = ctx.createLinearGradient(0, skyH * 0.7, 0, skyH)
+    horizonGrad.addColorStop(0, 'rgba(255,248,220,0)')
+    horizonGrad.addColorStop(1, 'rgba(255,248,220,0.35)')
+    ctx.fillStyle = horizonGrad
+    ctx.fillRect(0, skyH * 0.7, W, skyH * 0.3)
+
+    // ── CLOUDS ────────────────────────────────────────────────────────────
+    p5.noStroke()
+    for (const cloud of clouds) {
+      cloud.x -= cloud.speed
+      if (cloud.x < -220) cloud.x = W + 140
+
+      for (const c of cloud.circles) {
+        // Soft drop shadow
+        p5.fill(180, 200, 220, Math.round(cloud.alpha * 0.25))
+        p5.ellipse(cloud.x + c.dx + 7, cloud.y + c.dy + 7, c.r * 2.1, c.r * 1.6)
+        // Main cloud body
+        p5.fill(255, 255, 255, cloud.alpha)
+        p5.ellipse(cloud.x + c.dx, cloud.y + c.dy, c.r * 2, c.r * 1.6)
+        // Top highlight
+        p5.fill(255, 255, 255, Math.round(cloud.alpha * 0.55))
+        p5.ellipse(cloud.x + c.dx - 4, cloud.y + c.dy - 6, c.r * 1.3, c.r * 0.9)
       }
-      ctx.restore()
     }
 
-    // ── Mountain ──
-    const mx = w * 0.5, mBase = meadowTop + 10
-    const mHeight = h * 0.52
-    ctx.save()
+    // ── MOUNTAIN ──────────────────────────────────────────────────────────
+    const mx = W * 0.5
+    const peakY = H * 0.12
+    const mBaseY = H * 0.555
+    const mLeft = mx - W * 0.275
+    const mRight = mx + W * 0.275
 
-    // Mountain body shadow
-    ctx.beginPath()
-    ctx.moveTo(mx - w * 0.28, mBase)
-    ctx.lineTo(mx, mBase - mHeight)
-    ctx.lineTo(mx + w * 0.28, mBase)
-    ctx.closePath()
-    const mBodyGrad = ctx.createLinearGradient(mx - w * 0.28, mBase, mx + w * 0.28, mBase)
-    mBodyGrad.addColorStop(0, '#4A5240')
-    mBodyGrad.addColorStop(0.45, '#6B7260')
-    mBodyGrad.addColorStop(0.55, '#585E50')
-    mBodyGrad.addColorStop(1, '#3A4035')
-    ctx.fillStyle = mBodyGrad
-    ctx.fill()
-
-    // Snow cap
-    const snowLine = mBase - mHeight * 0.55
-    ctx.beginPath()
-    ctx.moveTo(mx - w * 0.07, snowLine + mHeight * 0.04)
-    ctx.lineTo(mx, mBase - mHeight)
-    ctx.lineTo(mx + w * 0.07, snowLine + mHeight * 0.04)
-    ctx.lineTo(mx + w * 0.12, snowLine + mHeight * 0.12)
-    ctx.lineTo(mx - w * 0.12, snowLine + mHeight * 0.12)
-    ctx.closePath()
-    const snowGrad = ctx.createLinearGradient(mx - w * 0.1, snowLine, mx + w * 0.1, snowLine)
-    snowGrad.addColorStop(0, '#D0E8F8')
-    snowGrad.addColorStop(0.4, '#FFFFFF')
-    snowGrad.addColorStop(0.6, '#F0F8FF')
-    snowGrad.addColorStop(1, '#C8DCF0')
-    ctx.fillStyle = snowGrad
-    ctx.fill()
-
-    // Snow glow
-    ctx.shadowColor = 'rgba(200,230,255,0.6)'
-    ctx.shadowBlur = 20
-    ctx.beginPath()
-    ctx.moveTo(mx - w * 0.04, snowLine)
-    ctx.lineTo(mx, mBase - mHeight)
-    ctx.lineTo(mx + w * 0.04, snowLine)
-    ctx.closePath()
-    ctx.fillStyle = 'rgba(255,255,255,0.7)'
-    ctx.fill()
-    ctx.shadowBlur = 0
-    ctx.restore()
-
-    // ── Back hills ──
-    ctx.beginPath()
-    ctx.moveTo(0, meadowTop)
-    ctx.bezierCurveTo(w * 0.15, meadowTop - h * 0.06, w * 0.3, meadowTop + h * 0.02, w * 0.5, meadowTop - h * 0.04)
-    ctx.bezierCurveTo(w * 0.7, meadowTop - h * 0.08, w * 0.85, meadowTop + h * 0.01, w, meadowTop - h * 0.03)
-    ctx.lineTo(w, meadowTop + h * 0.12)
-    ctx.lineTo(0, meadowTop + h * 0.12)
-    ctx.closePath()
-    const hillGrad1 = ctx.createLinearGradient(0, meadowTop - h * 0.08, 0, meadowTop + h * 0.1)
-    hillGrad1.addColorStop(0, '#2A5C1E')
-    hillGrad1.addColorStop(1, '#3A7028')
-    ctx.fillStyle = hillGrad1
-    ctx.fill()
-
-    // Pine trees on back hills
-    for (let i = 0; i < 22; i++) {
-      const tx = seededRandom(i * 31) * w
-      const ty = meadowTop - seededRandom(i * 19) * h * 0.06 + seededRandom(i * 7) * h * 0.04
-      const th = 18 + seededRandom(i * 13) * 22
-      ctx.save()
-      ctx.fillStyle = '#1A3D12'
-      ctx.beginPath()
-      ctx.moveTo(tx, ty - th)
-      ctx.lineTo(tx - th * 0.35, ty)
-      ctx.lineTo(tx + th * 0.35, ty)
-      ctx.closePath()
-      ctx.fill()
-      ctx.restore()
+    // Atmospheric glow (white haze around peak)
+    for (let g = 14; g > 0; g--) {
+      const exp = g * 4
+      p5.fill(200, 215, 235, Math.round((1 - g / 14) * 20))
+      p5.triangle(mx, peakY - exp, mLeft - exp * 0.6, mBaseY + exp * 0.15, mRight + exp * 0.6, mBaseY + exp * 0.15)
     }
 
-    // ── Front hill ──
-    ctx.beginPath()
-    ctx.moveTo(0, meadowTop + h * 0.06)
-    ctx.bezierCurveTo(w * 0.2, meadowTop - h * 0.01, w * 0.4, meadowTop + h * 0.09, w * 0.6, meadowTop + h * 0.04)
-    ctx.bezierCurveTo(w * 0.75, meadowTop - h * 0.01, w * 0.88, meadowTop + h * 0.07, w, meadowTop + h * 0.04)
-    ctx.lineTo(w, h)
-    ctx.lineTo(0, h)
-    ctx.closePath()
-    const hillGrad2 = ctx.createLinearGradient(0, meadowTop, 0, h)
-    hillGrad2.addColorStop(0, '#4A8A30')
-    hillGrad2.addColorStop(0.3, '#5A9E38')
-    hillGrad2.addColorStop(1, '#6BAF3C')
-    ctx.fillStyle = hillGrad2
-    ctx.fill()
+    // Right face (lighter, sunlit)
+    p5.fill(118, 116, 98)
+    p5.triangle(mx, peakY, mx + (mRight - mx) * 0.25, mBaseY, mRight, mBaseY)
 
-    // ── Meadow wildflowers ──
-    for (const f of wildflowersRef.current) {
-      const sway = Math.sin(t * 1.2 + f.swayOffset) * 1.2
-      ctx.save()
-      ctx.translate(f.x + sway, f.y)
+    // Main rocky body
+    p5.fill(107, 107, 90)  // #6B6B5A
+    p5.triangle(mx, peakY, mLeft, mBaseY, mRight, mBaseY)
+
+    // Left shadow face
+    p5.fill(72, 70, 58, 195)
+    const shadowBase = mx + (mLeft - mx) * 0.55
+    p5.triangle(mx, peakY, mLeft, mBaseY, shadowBase, mBaseY)
+
+    // Subtle rock texture highlights
+    p5.fill(130, 128, 108, 80)
+    p5.triangle(mx - 5, peakY + 55, mLeft + 45, mBaseY, mx + 18, mBaseY)
+    p5.fill(90, 88, 74, 60)
+    p5.triangle(mx + 10, peakY + 80, mx + 45, mBaseY, mRight - 30, mBaseY)
+
+    // Snow cap — blue shadow on left
+    const snowFrac = 0.36
+    const snowBaseY = peakY + (mBaseY - peakY) * snowFrac
+    const snowLeft = mLeft + (mRight - mLeft) * (1 - snowFrac) * 0.84
+    const snowRight = mRight - (mRight - mLeft) * (1 - snowFrac) * 0.82
+
+    p5.fill(200, 220, 242, 190)  // blue-grey shadow #C8DCF0
+    p5.quad(
+      mx, peakY,
+      snowLeft, snowBaseY,
+      snowLeft + 18, snowBaseY + 5,
+      mx - 14, peakY + 6
+    )
+
+    // Main pure-white snow
+    p5.fill(255, 255, 255)
+    p5.triangle(mx, peakY, snowLeft + 10, snowBaseY, snowRight, snowBaseY)
+
+    // Snow glow (luminosity halo)
+    for (let g = 9; g > 0; g--) {
+      p5.fill(255, 255, 255, g * 5)
+      p5.triangle(mx, peakY - g, snowLeft + 10 - g * 0.4, snowBaseY + g * 0.2, snowRight + g * 0.4, snowBaseY + g * 0.2)
+    }
+
+    // Snow surface texture / crevasse lines
+    p5.stroke(190, 215, 240, 130)
+    p5.strokeWeight(0.7)
+    p5.line(mx - 12, peakY + 22, mx - 42, snowBaseY - 18)
+    p5.line(mx + 6, peakY + 34, mx + 38, snowBaseY - 22)
+    p5.noStroke()
+
+    // ── BACK HILLS (layer 1) ──────────────────────────────────────────────
+    p5.fill(45, 90, 39)  // #2D5A27
+    drawHillShape(p5, hill1Y, W, H)
+
+    // Pine forest silhouettes on hill 1
+    for (const pine of pines1) {
+      drawPine(p5, pine.x, pine.hillBase, pine.height, pine.width, [30, 68, 28])
+    }
+
+    // ── MID HILLS (layer 2) ───────────────────────────────────────────────
+    p5.fill(58, 108, 48)
+    drawHillShape(p5, hill2Y, W, H)
+
+    // Pine forest on hill 2
+    for (const pine of pines2) {
+      drawPine(p5, pine.x, pine.hillBase, pine.height, pine.width, [42, 86, 36])
+    }
+
+    // ── FRONT HILLS (layer 3) ─────────────────────────────────────────────
+    p5.fill(90, 143, 60)  // #5A8F3C
+    drawHillShape(p5, hill3Y, W, H)
+
+    // ── MEADOW ────────────────────────────────────────────────────────────
+    const meadowY = H * 0.65
+    const meadowGrad = ctx.createLinearGradient(0, meadowY, 0, H)
+    meadowGrad.addColorStop(0.00, '#6BAF3C')
+    meadowGrad.addColorStop(0.35, '#74B842')
+    meadowGrad.addColorStop(0.70, '#6AAE3A')
+    meadowGrad.addColorStop(1.00, '#5A9830')
+    ctx.fillStyle = meadowGrad
+    ctx.fillRect(0, meadowY, W, H - meadowY + 2)
+
+    // Subtle meadow depth shading (darker at horizon, lighter in foreground)
+    const depthGrad = ctx.createLinearGradient(0, meadowY, 0, H)
+    depthGrad.addColorStop(0, 'rgba(0,30,0,0.18)')
+    depthGrad.addColorStop(0.5, 'rgba(0,30,0,0.06)')
+    depthGrad.addColorStop(1, 'rgba(255,255,240,0.04)')
+    ctx.fillStyle = depthGrad
+    ctx.fillRect(0, meadowY, W, H - meadowY + 2)
+
+    // ── BACKGROUND WILDFLOWERS ────────────────────────────────────────────
+    for (const flower of bgFlowers) {
+      const sway = (p5.noise(flower.noiseOff + T * 0.55) - 0.5) * 9
+      const bob  = (p5.noise(flower.noiseOff + 200 + T * 0.45) - 0.5) * 3
+      const fx = flower.x + sway
+      const fy = flower.y + bob
+
+      // Perspective scale: flowers near bottom are slightly larger
+      const depthScale = 0.75 + 0.25 * ((flower.y - meadowY) / (H - meadowY))
+      const sz = flower.size * depthScale
+
+      const [r, g, b] = hexToRgb(FLOWER_COLORS[flower.colorIdx])
+
       // Stem
-      ctx.strokeStyle = `rgba(60,110,30,0.6)`
-      ctx.lineWidth = 0.8
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.lineTo(0, -f.size * 1.4)
-      ctx.stroke()
-      // Petals by type
-      if (f.type === 0) { // Blue iris
-        ctx.fillStyle = `rgba(90,140,210,0.8)`
-        for (let p = 0; p < 5; p++) {
-          const a = (p / 5) * Math.PI * 2
-          ctx.beginPath()
-          ctx.ellipse(Math.cos(a) * f.size * 0.5, -f.size * 1.4 + Math.sin(a) * f.size * 0.5, f.size * 0.4, f.size * 0.2, a, 0, Math.PI * 2)
-          ctx.fill()
+      p5.stroke(65, 128, 42, 175)
+      p5.strokeWeight(0.7)
+      p5.line(fx, fy, fx - sway * 0.35, fy + sz * 2.2)
+      p5.noStroke()
+
+      p5.fill(r, g, b, 215)
+
+      if (flower.type === 0) {
+        // Simple round bloom
+        p5.ellipse(fx, fy, sz * 2, sz * 2)
+
+      } else if (flower.type === 1) {
+        // 5-petal flower
+        for (let a = 0; a < Math.PI * 2; a += Math.PI * 2 / 5) {
+          p5.ellipse(
+            fx + Math.cos(a + T * 0.03) * sz * 0.68,
+            fy + Math.sin(a + T * 0.03) * sz * 0.68,
+            sz * 1.15, sz * 1.15
+          )
         }
-      } else if (f.type === 1) { // White cotton
-        ctx.fillStyle = `rgba(240,240,240,0.9)`
-        ctx.beginPath()
-        ctx.arc(0, -f.size * 1.4, f.size * 0.7, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.fillStyle = `rgba(200,200,200,0.5)`
-        for (let p = 0; p < 6; p++) {
-          const a = (p / 6) * Math.PI * 2
-          ctx.beginPath()
-          ctx.arc(Math.cos(a) * f.size * 0.5, -f.size * 1.4 + Math.sin(a) * f.size * 0.5, f.size * 0.3, 0, Math.PI * 2)
-          ctx.fill()
+        p5.fill(255, 228, 70, 215)
+        p5.ellipse(fx, fy, sz * 0.78, sz * 0.78)
+
+      } else {
+        // Star / 6-petal cluster
+        for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+          p5.fill(r, g, b, 200)
+          p5.ellipse(
+            fx + Math.cos(a) * sz * 0.72,
+            fy + Math.sin(a) * sz * 0.72,
+            sz, sz
+          )
         }
-      } else if (f.type === 2) { // Purple lavender
-        ctx.fillStyle = `rgba(150,100,200,0.75)`
-        for (let p = 0; p < 4; p++) {
-          ctx.beginPath()
-          ctx.ellipse(0, -f.size * (1.2 + p * 0.3), f.size * 0.25, f.size * 0.4, 0, 0, Math.PI * 2)
-          ctx.fill()
-        }
-      } else { // Yellow
-        ctx.fillStyle = `rgba(240,200,50,0.85)`
-        for (let p = 0; p < 6; p++) {
-          const a = (p / 6) * Math.PI * 2
-          ctx.beginPath()
-          ctx.ellipse(Math.cos(a) * f.size * 0.45, -f.size * 1.4 + Math.sin(a) * f.size * 0.45, f.size * 0.3, f.size * 0.15, a, 0, Math.PI * 2)
-          ctx.fill()
-        }
-        ctx.fillStyle = `rgba(255,160,0,0.9)`
-        ctx.beginPath()
-        ctx.arc(0, -f.size * 1.4, f.size * 0.25, 0, Math.PI * 2)
-        ctx.fill()
+        p5.fill(255, 255, 255, 185)
+        p5.ellipse(fx, fy, sz * 0.52, sz * 0.52)
       }
-      ctx.restore()
     }
+    p5.noStroke()
 
-    // ── Knowledge plants ──
-    const mx2 = mouseRef.current.x, my2 = mouseRef.current.y
-    let newHovered: string | null = null
+    // ── KNOWLEDGE PLANTS ──────────────────────────────────────────────────
 
-    for (const plant of plantsRef.current) {
-      const isFiltered = searchFilter.length > 0 &&
-        !plant.entry.title.includes(searchFilter) &&
-        !(plant.entry.titleEn ?? '').toLowerCase().includes(searchFilter.toLowerCase()) &&
-        !plant.entry.tags.some(tag => tag.includes(searchFilter))
-
-      const dist = Math.hypot(mx2 - plant.x, my2 - plant.y)
-      const isHover = dist < plant.size * 1.8 && !isFiltered
-      if (isHover) newHovered = plant.entry.id
-
-      const targetSize = isHover ? plant.size * 1.6 : plant.size
-      plant.hovered = isHover
-
-      const sway = Math.sin(t * plant.swaySpeed + plant.swayOffset) * 3
-      const alpha = isFiltered ? 0.2 : 1.0
-
-      ctx.save()
-      ctx.globalAlpha = alpha
-      ctx.translate(plant.x + sway, plant.y)
-
-      // Glow
-      if (isHover) {
-        ctx.shadowColor = `rgba(${plant.glowColor.join(',')},0.8)`
-        ctx.shadowBlur = 24
+    // Hover detection
+    state.hoveredIdx = -1
+    for (let i = 0; i < plants.length; i++) {
+      const plant = plants[i]
+      const sway = (p5.noise(plant.noiseOff + T * 0.8) - 0.5) * 11
+      const px = plant.x + sway
+      const py = plant.baseY - 32
+      if (p5.dist(p5.mouseX, p5.mouseY, px, py) < 38) {
+        state.hoveredIdx = i
+        break
       }
+    }
+    p5.cursor(state.hoveredIdx >= 0 ? 'pointer' : 'default')
+
+    for (let i = 0; i < plants.length; i++) {
+      const plant = plants[i]
+      const { entry, color, glowColor } = plant
+      const isHovered = state.hoveredIdx === i
+
+      // Search filter matching
+      const isMatch = !sf
+        || entry.title.includes(sf)
+        || (entry.titleEn ?? '').toLowerCase().includes(sf.toLowerCase())
+        || entry.tags.some(tag => tag.includes(sf))
+      const wilt = !!(sf && !isMatch)
+      const alpha = wilt ? 50 : 255
+
+      const sway = (p5.noise(plant.noiseOff + T * 0.8) - 0.5) * 11
+      const bob  = Math.sin(T * 2.2 + i * 0.85) * 2.5
+      const px = plant.x + sway
+      const stemH = wilt ? 18 : (isHovered ? 54 : 40)
+      const py = plant.baseY + bob - stemH
 
       // Stem
-      ctx.strokeStyle = `rgb(50,100,30)`
-      ctx.lineWidth = 2.5
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.quadraticCurveTo(sway * 0.5, -plant.stemHeight * 0.5, 0, -plant.stemHeight)
-      ctx.stroke()
+      p5.stroke(50, 108, 35, alpha)
+      p5.strokeWeight(wilt ? 1 : 2.8)
 
-      // Petals
-      const [r, g, b] = isHover ? plant.glowColor : plant.color
-      const petalCount = 6
-      ctx.fillStyle = `rgb(${r},${g},${b})`
-      for (let p = 0; p < petalCount; p++) {
-        const a = (p / petalCount) * Math.PI * 2
-        const petalLen = targetSize * 0.85
-        const petalW = targetSize * 0.35
-        ctx.save()
-        ctx.translate(0, -plant.stemHeight)
-        ctx.rotate(a)
-        ctx.beginPath()
-        ctx.ellipse(0, -petalLen * 0.5, petalW, petalLen, 0, 0, Math.PI * 2)
-        ctx.globalAlpha = alpha * 0.85
-        ctx.fill()
-        ctx.restore()
+      if (wilt) {
+        // Drooping wilted stem
+        p5.line(px, py + 10, px + 10, plant.baseY)
+      } else {
+        p5.line(px, py, px - sway * 0.3, plant.baseY)
+      }
+      p5.noStroke()
+
+      if (wilt) {
+        // Tiny wilted bud
+        p5.fill(color[0], color[1], color[2], alpha)
+        p5.ellipse(px + 10, py + 10, 8, 8)
+        continue
       }
 
-      // Center
-      ctx.shadowBlur = isHover ? 12 : 0
-      ctx.beginPath()
-      ctx.arc(0, -plant.stemHeight, targetSize * 0.28, 0, Math.PI * 2)
-      ctx.fillStyle = '#FFF9E6'
-      ctx.globalAlpha = alpha
-      ctx.fill()
+      const flowerR = isHovered ? 22 : 15
 
-      // Hover label
-      if (isHover) {
-        const label = lang === 'zh' ? plant.entry.title : (plant.entry.titleEn ?? plant.entry.title)
-        ctx.shadowBlur = 0
-        ctx.font = 'bold 13px Inter, sans-serif'
-        const tw = ctx.measureText(label).width
-        const lx = -tw / 2 - 8
-        const ly = -plant.stemHeight - targetSize - 28
-
-        ctx.fillStyle = 'rgba(10,15,30,0.75)'
-        ctx.beginPath()
-        ctx.roundRect(lx, ly - 16, tw + 16, 22, 6)
-        ctx.fill()
-
-        ctx.fillStyle = '#FFFFFF'
-        ctx.textAlign = 'center'
-        ctx.fillText(label, 0, ly - 1)
+      // Glow aura
+      const glowLayers = isHovered ? 8 : 4
+      for (let g = glowLayers; g > 0; g--) {
+        const glowAlpha = (g / glowLayers) * (isHovered ? 75 : 38)
+        const glowR = flowerR + g * (isHovered ? 9 : 5)
+        p5.fill(glowColor[0], glowColor[1], glowColor[2], Math.round(glowAlpha))
+        p5.ellipse(px, py, glowR * 2, glowR * 2)
       }
 
-      ctx.restore()
+      // 6 petals rotating very slowly
+      const rotOff = T * 0.025 + i * 0.55
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+        const petalA = a + rotOff
+        p5.fill(color[0], color[1], color[2], alpha)
+        p5.ellipse(
+          px + Math.cos(petalA) * flowerR * 0.88,
+          py + Math.sin(petalA) * flowerR * 0.88,
+          flowerR, flowerR
+        )
+      }
+
+      // Inner ring of smaller petals (alternating)
+      for (let a = Math.PI / 6; a < Math.PI * 2; a += Math.PI / 3) {
+        const petalA = a + rotOff
+        p5.fill(
+          Math.min(255, color[0] + 40),
+          Math.min(255, color[1] + 30),
+          Math.min(255, color[2] + 60),
+          Math.round(alpha * 0.7)
+        )
+        p5.ellipse(
+          px + Math.cos(petalA) * flowerR * 0.52,
+          py + Math.sin(petalA) * flowerR * 0.52,
+          flowerR * 0.55, flowerR * 0.55
+        )
+      }
+
+      // Golden center
+      p5.fill(255, 238, 80, alpha)
+      p5.ellipse(px, py, flowerR * 0.68, flowerR * 0.68)
+      // Center highlight dot
+      p5.fill(255, 255, 200, Math.round(alpha * 0.8))
+      p5.ellipse(px - 2, py - 2, flowerR * 0.28, flowerR * 0.28)
+
+      // ── Hover label ────────────────────────────────────────────────────
+      if (isHovered) {
+        const title = currentLang === 'zh' ? entry.title : (entry.titleEn ?? entry.title)
+        const cat   = currentLang === 'zh' ? entry.category : (entry.categoryEn ?? entry.category)
+        const emoji = entry.emoji ?? '🌸'
+
+        p5.textFont('system-ui, -apple-system, sans-serif')
+        p5.textSize(13)
+        const titleW = p5.textWidth(title)
+        const labelW = titleW + 46  // emoji + padding
+        const labelH = 34
+
+        let labelX = px - labelW / 2
+        // Clamp to canvas bounds
+        labelX = Math.max(8, Math.min(W - labelW - 8, labelX))
+        const labelY = py - flowerR - labelH - 16
+
+        // Glass background
+        p5.fill(10, 10, 20, 180)
+        p5.rect(labelX, labelY, labelW, labelH, 12)
+
+        // Color accent bar on left
+        p5.fill(color[0], color[1], color[2], 220)
+        p5.rect(labelX, labelY, 4, labelH, 12, 0, 0, 12)
+
+        // Emoji
+        p5.textSize(14)
+        p5.textAlign(p5.LEFT, p5.CENTER)
+        p5.fill(255, 255, 255, 230)
+        p5.text(emoji, labelX + 10, labelY + labelH / 2)
+
+        // Title
+        p5.textSize(13)
+        p5.fill(255, 255, 255, 240)
+        p5.text(title, labelX + 28, labelY + labelH / 2)
+
+        // Category tag below
+        p5.textSize(10)
+        p5.textAlign(p5.CENTER, p5.TOP)
+        p5.fill(color[0], color[1], color[2], 210)
+        p5.text(`· ${cat} ·`, px, labelY + labelH + 4)
+
+        p5.textAlign(p5.LEFT, p5.BASELINE)
+      }
     }
 
-    hoveredIdRef.current = newHovered
-    // Update cursor style
-    const canvas = canvasRef.current
-    if (canvas) canvas.style.cursor = newHovered ? 'pointer' : 'default'
+    state.frame++
+  }
 
-  }, [entries, searchFilter, lang])
+  // ── mouseClicked ───────────────────────────────────────────────────────
+  const mouseClicked = (_p5: P5) => {
+    const state = stateRef.current
+    if (!state || state.hoveredIdx < 0) return
+    const entry = state.plants[state.hoveredIdx].entry
+    propsRef.current.onEntryClick(entry.id)
+  }
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      initScene(canvas.width, canvas.height)
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    const loop = () => {
-      frameRef.current++
-      draw(ctx, canvas.width, canvas.height, frameRef.current)
-      rafRef.current = requestAnimationFrame(loop)
-    }
-    rafRef.current = requestAnimationFrame(loop)
-
-    const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY }
-    }
-    const onClick = () => {
-      if (hoveredIdRef.current) onEntryClick(hoveredIdRef.current)
-    }
-
-    canvas.addEventListener('mousemove', onMouseMove)
-    canvas.addEventListener('click', onClick)
-
-    return () => {
-      cancelAnimationFrame(rafRef.current)
-      window.removeEventListener('resize', resize)
-      canvas.removeEventListener('mousemove', onMouseMove)
-      canvas.removeEventListener('click', onClick)
-    }
-  }, [initScene, draw, onEntryClick])
+  // ── windowResized ──────────────────────────────────────────────────────
+  const windowResized = (p5: P5) => {
+    const W = window.innerWidth
+    const H = window.innerHeight
+    p5.resizeCanvas(W, H)
+    stateRef.current = createState(p5, W, H, propsRef.current.entries)
+  }
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', display: 'block' }}
+    <Sketch
+      setup={setup}
+      draw={draw}
+      mouseClicked={mouseClicked}
+      windowResized={windowResized}
+      style={{ display: 'block', width: '100%', height: '100%' }}
     />
   )
 }

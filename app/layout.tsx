@@ -4,10 +4,10 @@ import { LanguageProvider } from '@/components/LanguageProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MyKnowledge — 我的知识花园',
-  description: 'A beautiful, interactive personal knowledge base',
+  title: 'MyKnowledge — 知识花园',
+  description: 'A beautiful, interactive personal knowledge base — sacred mountain garden',
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>",
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>",
   },
 }
 
