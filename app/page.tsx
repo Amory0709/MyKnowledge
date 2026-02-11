@@ -1,252 +1,213 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
+import { GardenCanvas } from '@/components/GardenCanvas'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { useLang } from '@/components/LanguageProvider'
 import entries from '@/data/entries.json'
 import type { KnowledgeEntry } from '@/types'
 
 const allEntries = entries as KnowledgeEntry[]
 
-const difficultyLabel: Record<string, string> = {
-  beginner: '入门',
-  intermediate: '进阶',
-  advanced: '深入',
-}
-const difficultyColor: Record<string, string> = {
-  beginner: '#50fa7b',
-  intermediate: '#ffb86c',
-  advanced: '#ff79c6',
-}
-
 export default function HomePage() {
+  const router = useRouter()
+  const { lang, setLang, t } = useLang()
   const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState<string>('全部')
+  const [showList, setShowList] = useState(false)
 
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(allEntries.map(e => e.category)))
-    return ['全部', ...cats]
-  }, [])
+  const handlePlantClick = (id: string) => {
+    router.push(`/MyKnowledge/knowledge/${id}`)
+  }
 
-  const filtered = useMemo(() => {
-    return allEntries.filter(e => {
-      const matchSearch =
-        !search ||
-        e.title.includes(search) ||
-        e.summary.includes(search) ||
-        e.tags.some(t => t.includes(search))
-      const matchCat = activeCategory === '全部' || e.category === activeCategory
-      return matchSearch && matchCat
-    })
-  }, [search, activeCategory])
+  const filtered = allEntries.filter(e =>
+    !search ||
+    e.title.includes(search) ||
+    (e.titleEn ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    e.tags.some(t => t.includes(search))
+  )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* ── Nav ── */}
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
+      {/* Canvas garden */}
+      <GardenCanvas
+        entries={allEntries}
+        onEntryClick={handlePlantClick}
+        searchFilter={search}
+        lang={lang}
+      />
+
+      {/* ── Top Nav ── */}
       <nav
-        className="sticky top-0 z-30 flex items-center justify-between px-6 py-4"
         style={{
-          background: 'var(--bg-primary)',
-          borderBottom: '1px solid var(--border-subtle)',
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 24px',
+          background: 'rgba(255,255,255,0.12)',
           backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
         }}
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🌱</span>
-          <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>MyKnowledge</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 22 }}>🌸</span>
+          <span style={{ fontWeight: 700, fontSize: 16, color: '#1a3a1a', textShadow: '0 1px 3px rgba(255,255,255,0.8)' }}>
+            {t('知识花园', 'Knowledge Garden')}
+          </span>
         </div>
-        <ThemeSwitcher />
-      </nav>
 
-      {/* ── Hero ── */}
-      <div
-        className="relative px-6 py-16 text-center overflow-hidden"
-        style={{ background: 'var(--gradient-hero)' }}
-      >
-        <div className="absolute inset-0" style={{ background: 'var(--gradient-glow)' }} />
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="relative"
-        >
-          <h1
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            我的知识花园 🌸
-          </h1>
-          <p className="text-lg mb-8 max-w-xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            遇到的每一块知识，都值得被漂亮地记下来
-          </p>
-
-          {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-normal)',
-                boxShadow: 'var(--shadow-md)',
-              }}
-            >
-              <span style={{ color: 'var(--text-muted)' }}>🔍</span>
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="搜索知识..."
-                className="flex-1 bg-transparent outline-none text-sm"
-                style={{ color: 'var(--text-primary)' }}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="text-xs"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── Category Filter ── */}
-      <div className="px-6 py-4 flex gap-2 overflow-x-auto">
-        {categories.map(cat => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Language toggle */}
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className="px-4 py-1.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all"
+            onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
             style={{
-              background: activeCategory === cat ? 'var(--accent-primary)' : 'var(--bg-glass)',
-              color: activeCategory === cat ? '#fff' : 'var(--text-secondary)',
-              border: `1px solid ${activeCategory === cat ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+              padding: '6px 14px',
+              borderRadius: 20,
+              border: '1px solid rgba(255,255,255,0.4)',
+              background: 'rgba(255,255,255,0.25)',
+              color: '#1a3a1a',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            {cat}
+            {lang === 'zh' ? 'EN' : '中'}
           </button>
-        ))}
-      </div>
+          <ThemeSwitcher />
+        </div>
+      </nav>
 
-      {/* ── Knowledge Grid ── */}
-      <main className="px-6 py-4 pb-16">
-        <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-          {filtered.length} 条知识
-          {search && ` · 搜索「${search}」`}
-        </p>
-
+      {/* ── Bottom search + list toggle ── */}
+      <div
+        style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+          width: 'min(480px, 90vw)',
+        }}
+      >
+        {/* Search pill */}
         <motion.div
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          style={{
+            width: '100%',
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 18px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.25)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+          }}
         >
-          <AnimatePresence>
-            {filtered.map((entry, i) => (
-              <motion.div
-                key={entry.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <Link href={`/knowledge/${entry.id}`} className="block h-full">
-                  <motion.div
-                    className="h-full rounded-2xl p-5 cursor-pointer transition-all"
-                    style={{
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-subtle)',
-                      boxShadow: 'var(--shadow-sm)',
-                    }}
-                    whileHover={{
-                      y: -4,
-                      boxShadow: 'var(--shadow-glow)',
-                      borderColor: 'var(--accent-primary)',
-                    }}
-                  >
-                    {/* Emoji + category */}
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="text-3xl">{entry.emoji || '📄'}</span>
-                      <div className="flex flex-col items-end gap-1">
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{
-                            background: 'var(--bg-glass)',
-                            color: 'var(--text-muted)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        >
-                          {entry.category}
-                        </span>
-                        {!entry.public && (
-                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🔒 私密</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Title */}
-                    <h2
-                      className="font-bold text-base mb-2"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {entry.title}
-                    </h2>
-
-                    {/* Summary */}
-                    <p
-                      className="text-sm leading-relaxed mb-4 line-clamp-2"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {entry.summary}
-                    </p>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-1 flex-wrap">
-                        {entry.tags.slice(0, 3).map(tag => (
-                          <span
-                            key={tag}
-                            className="text-xs px-2 py-0.5 rounded-full"
-                            style={{
-                              background: 'var(--bg-glass)',
-                              color: 'var(--text-muted)',
-                              border: '1px solid var(--border-subtle)',
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      {entry.difficulty && (
-                        <span
-                          className="text-xs font-medium"
-                          style={{ color: difficultyColor[entry.difficulty] }}
-                        >
-                          {difficultyLabel[entry.difficulty]}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                </Link>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <span style={{ fontSize: 16, opacity: 0.7 }}>🔍</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('在花园中寻找知识...', 'Search the garden...')}
+            style={{
+              flex: 1, background: 'transparent', border: 'none', outline: 'none',
+              fontSize: 14, color: '#1a2a1a',
+            }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, fontSize: 12 }}
+            >
+              ✕
+            </button>
+          )}
         </motion.div>
 
-        {filtered.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
+        {/* Entry count + list toggle */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            onClick={() => setShowList(v => !v)}
+            style={{
+              padding: '5px 14px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.22)',
+              border: '1px solid rgba(255,255,255,0.4)',
+              backdropFilter: 'blur(8px)',
+              fontSize: 12,
+              color: '#1a3a1a',
+              cursor: 'pointer',
+            }}
           >
-            <p className="text-4xl mb-4">🌱</p>
-            <p style={{ color: 'var(--text-muted)' }}>没找到匹配的知识</p>
-          </motion.div>
-        )}
-      </main>
+            🌱 {allEntries.length} {t('块知识', 'entries')} {showList ? '▲' : '▼'}
+          </button>
+        </div>
+
+        {/* List drawer */}
+        <AnimatePresence>
+          {showList && (
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.97 }}
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.22)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.45)',
+                borderRadius: 20,
+                padding: 12,
+                maxHeight: 240,
+                overflowY: 'auto',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              }}
+            >
+              {filtered.map(entry => (
+                <button
+                  key={entry.id}
+                  onClick={() => handlePlantClick(entry.id)}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    padding: '8px 12px', borderRadius: 12,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                >
+                  <span style={{ fontSize: 20 }}>{entry.emoji ?? '🌿'}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1a2a1a' }}>
+                      {lang === 'zh' ? entry.title : (entry.titleEn ?? entry.title)}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#3a5a3a', opacity: 0.7 }}>{entry.category}</div>
+                  </div>
+                  {!entry.public && <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.5 }}>🔒</span>}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <div style={{ textAlign: 'center', padding: 16, color: '#3a5a3a', fontSize: 13 }}>
+                  {t('没找到匹配的知识', 'No matching entries')}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Hint text */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+        style={{
+          position: 'fixed', bottom: 130, left: '50%', transform: 'translateX(-50%)',
+          fontSize: 12, color: 'rgba(30,50,30,0.55)',
+          textShadow: '0 1px 3px rgba(255,255,255,0.7)',
+          whiteSpace: 'nowrap', zIndex: 5,
+          pointerEvents: 'none',
+        }}
+      >
+        {t('✨ 悬停在花朵上探索知识', '✨ Hover over flowers to explore')}
+      </motion.p>
     </div>
   )
 }
