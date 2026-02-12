@@ -176,6 +176,7 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
     async function init() {
       const THREE = await import('three')
       const { Sky } = await import('three/addons/objects/Sky.js')
+      const { OrbitControls } = await import('three/addons/controls/OrbitControls.js')
 
       const container = containerRef.current!
       const w = container.clientWidth, h = container.clientHeight
@@ -192,13 +193,27 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
       const scene = new THREE.Scene()
       // Atmospheric fog — blue-ish, matching reference photo haze
-      scene.fog = new THREE.Fog(0xa0c4e4, 400, 3500)
+      scene.fog = new THREE.Fog(0xb0d0ec, 200, 1800)
 
-      // ── Camera — standing in meadow, eye-level ~1.6m ──
-      // Reference photo: person sitting in meadow, camera ~1.2m high
-      const camera = new THREE.PerspectiveCamera(58, w / h, 0.5, 5000)
-      camera.position.set(0, 1.6, 0) // Standing in the meadow
-      camera.lookAt(0, 120, -800) // Looking up at distant mountain
+      // ── Camera — in the meadow, gentle upward look ──
+      // 4 layers: sky (top) → mountain → green hills → meadow (bottom)
+      const camera = new THREE.PerspectiveCamera(55, w / h, 0.5, 5000)
+      camera.position.set(0, 2.5, 0)
+      camera.lookAt(0, 25, -300) // Mostly horizontal, slight upward tilt
+
+      // ── OrbitControls — drag to look around, scroll to zoom ──
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.target.set(0, 25, -300)
+      controls.enableDamping = true
+      controls.dampingFactor = 0.05
+      controls.enablePan = true
+      controls.panSpeed = 0.5
+      controls.rotateSpeed = 0.4
+      controls.zoomSpeed = 0.8
+      controls.minDistance = 1
+      controls.maxDistance = 500
+      controls.maxPolarAngle = Math.PI * 0.85 // Don't go underground
+      controls.minPolarAngle = Math.PI * 0.1  // Don't flip over
 
       // ── Sky ──
       const sky = new Sky()
@@ -260,32 +275,36 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       meadow.receiveShadow = true
       scene.add(meadow)
 
-      // ── 2. ROLLING HILLS (middle ground, 80-600m) ──
-      for (let layer = 0; layer < 3; layer++) {
-        const hillZ = -120 - layer * 120 // z=-120, -240, -360
-        const hillGeo = new THREE.PlaneGeometry(600, 100, 120, 20)
+      // ── 2. ROLLING HILLS (middle ground) ──
+      // Shared function so trees can sample the exact same height
+      const hillConfigs = [
+        { z: -60, base: 8, amp: 12, freq: 0.006, green: 0.28 },
+        { z: -140, base: 18, amp: 18, freq: 0.005, green: 0.22 },
+        { z: -240, base: 30, amp: 22, freq: 0.004, green: 0.17 },
+      ]
+      function getHillY(layer: number, worldX: number, localZ: number): number {
+        const c = hillConfigs[layer]
+        return c.base + Math.sin(worldX * c.freq + layer * 1.7) * c.amp + Math.sin(worldX * 0.03 + localZ * 0.02) * 2.5
+      }
+
+      hillConfigs.forEach((c, layer) => {
+        const hillGeo = new THREE.PlaneGeometry(800, 140, 120, 20)
         hillGeo.rotateX(-Math.PI / 2)
         const hPos = hillGeo.attributes.position.array as Float32Array
         for (let i = 0; i < hPos.length / 3; i++) {
           const x = hPos[i * 3], z = hPos[i * 3 + 2]
-          // Rolling hill shape
-          const base = (layer + 1) * 12
-          const roll = Math.sin(x * 0.008 + layer * 1.7) * 15 * (layer + 1) * 0.5
-          const noise = Math.sin(x * 0.03 + z * 0.02) * 3
-          hPos[i * 3 + 1] = base + roll + noise
+          hPos[i * 3 + 1] = getHillY(layer, x, z)
         }
         hillGeo.computeVertexNormals()
-        // Darker green for farther hills
-        const greenIntensity = 0.25 - layer * 0.04
         const hillMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(greenIntensity * 0.6, greenIntensity * 1.5, greenIntensity * 0.45),
+          color: new THREE.Color(c.green * 0.55, c.green * 1.6, c.green * 0.4),
           roughness: 0.9,
         })
         const hill = new THREE.Mesh(hillGeo, hillMat)
-        hill.position.set(0, 0, hillZ)
+        hill.position.set(0, 0, c.z)
         hill.receiveShadow = true
         scene.add(hill)
-      }
+      })
 
       // ── 3. PINE TREES on hills (scattered, getting smaller with distance) ──
       const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 4, 5)
@@ -294,14 +313,15 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
       for (let i = 0; i < 120; i++) {
         const layerIdx = Math.floor(seeded(i * 31) * 3)
-        const baseZ = -120 - layerIdx * 120
-        const tx = (seeded(i * 7) - 0.5) * 500
-        const tz = baseZ + (seeded(i * 13) - 0.5) * 80
+        const c = hillConfigs[layerIdx]
+        const tx = (seeded(i * 7) - 0.5) * 400
+        const localZ = (seeded(i * 13) - 0.5) * 80
+        const tz = c.z + localZ
 
-        // Tree height varies with distance
-        const scale = 1.0 + layerIdx * 0.5
-        const hillY = (layerIdx + 1) * 12 +
-          Math.sin(tx * 0.008 + layerIdx * 1.7) * 15 * (layerIdx + 1) * 0.5
+        // Tree scale varies with distance
+        const scale = 0.8 + layerIdx * 0.4
+        // Use the SAME height function as the hill mesh
+        const hillY = getHillY(layerIdx, tx, localZ)
 
         const treeGroup = new THREE.Group()
         const trunk = new THREE.Mesh(trunkGeo, trunkMat)
@@ -327,10 +347,10 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       // ── 4. THE MOUNTAIN (far background, ~800-2000m away) ──
       // Create a sharp, majestic peak centered in the view
       const mtRes = 180
-      const mtGeo = new THREE.PlaneGeometry(1600, 1200, mtRes - 1, mtRes - 1)
+      const mtGeo = new THREE.PlaneGeometry(2000, 1400, mtRes - 1, mtRes - 1)
       mtGeo.rotateX(-Math.PI / 2)
       const mtPos = mtGeo.attributes.position.array as Float32Array
-      const peakHeight = 500
+      const peakHeight = 220 // Sized so peak appears in upper quarter of frame
 
       // Procedural noise for mountain detail
       function mNoise(x: number, z: number, oct = 6): number {
@@ -371,7 +391,7 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
         },
       })
       const mountain = new THREE.Mesh(mtGeo, mtMat)
-      mountain.position.set(0, -20, -1200) // Far away!
+      mountain.position.set(0, -15, -1200) // Far behind the hills (front edge at z=-500)
       mountain.castShadow = true
       mountain.receiveShadow = true
       scene.add(mountain)
@@ -495,10 +515,8 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
         cMat.uniforms.uTime.value = t
 
-        // Gentle camera sway (like breathing wind)
-        camera.position.x = Math.sin(t * 0.035) * 1.0
-        camera.position.y = 1.6 + Math.sin(t * 0.05) * 0.15
-        camera.lookAt(Math.sin(t * 0.02) * 2, 120, -800)
+        // OrbitControls update (replaces auto camera sway)
+        controls.update()
 
         // Raycast knowledge flowers
         raycaster.setFromCamera(mouse, camera)
@@ -545,6 +563,7 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
       cleanupRef.current = () => {
         destroyed = true
+        controls.dispose()
         renderer.domElement.removeEventListener('mousemove', onMM)
         renderer.domElement.removeEventListener('click', onCl)
         window.removeEventListener('resize', onRs)

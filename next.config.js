@@ -3,8 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['react-p5'],
   typescript: { ignoreBuildErrors: true },
-  output: 'export',
-  basePath: '/MyKnowledge',
+  output: process.env.DEPLOY ? 'export' : undefined,
+  basePath: process.env.DEPLOY ? '/MyKnowledge' : '',
   images: { unoptimized: true },
 }
 
