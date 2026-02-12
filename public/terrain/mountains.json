@@ -1,0 +1,79 @@
+[
+  {
+    "id": "fitz-roy",
+    "name": "Fitz Roy (Patagonia)",
+    "category": "编程",
+    "lat": -49.271,
+    "lng": -73.043,
+    "radiusKm": 12,
+    "minElevation": 301,
+    "maxElevation": 2876,
+    "resolution": 512
+  },
+  {
+    "id": "matterhorn",
+    "name": "Matterhorn (Alps)",
+    "category": "财务",
+    "lat": 45.9763,
+    "lng": 7.6586,
+    "radiusKm": 10,
+    "minElevation": 1108,
+    "maxElevation": 4520,
+    "resolution": 512
+  },
+  {
+    "id": "everest",
+    "name": "Mount Everest (Himalayas)",
+    "category": "数学",
+    "lat": 27.9881,
+    "lng": 86.925,
+    "radiusKm": 15,
+    "minElevation": 3428,
+    "maxElevation": 8741,
+    "resolution": 512
+  },
+  {
+    "id": "hotaka",
+    "name": "Hotaka (Japanese Alps)",
+    "category": "设计",
+    "lat": 36.289,
+    "lng": 137.648,
+    "radiusKm": 10,
+    "minElevation": 661,
+    "maxElevation": 3178,
+    "resolution": 512
+  },
+  {
+    "id": "preikestolen",
+    "name": "Lysefjorden (Norway)",
+    "category": "人文",
+    "lat": 59.02,
+    "lng": 6.15,
+    "radiusKm": 15,
+    "minElevation": -2,
+    "maxElevation": 844,
+    "resolution": 512
+  },
+  {
+    "id": "olympus",
+    "name": "Mount Olympus (Greece)",
+    "category": "社交",
+    "lat": 40.0855,
+    "lng": 22.3583,
+    "radiusKm": 10,
+    "minElevation": 2,
+    "maxElevation": 2880,
+    "resolution": 512
+  },
+  {
+    "id": "fuji",
+    "name": "Mount Fuji (Japan)",
+    "category": "修身",
+    "lat": 35.3606,
+    "lng": 138.7274,
+    "radiusKm": 12,
+    "minElevation": 15,
+    "maxElevation": 3744,
+    "resolution": 512
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "id": "fitz-roy",
+  "name": "Fitz Roy (Patagonia)",
+  "category": "编程",
+  "lat": -49.271,
+  "lng": -73.043,
+  "radiusKm": 12,
+  "minElevation": 301,
+  "maxElevation": 2876,
+  "resolution": 512
+}

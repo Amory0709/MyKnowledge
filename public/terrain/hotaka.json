@@ -1,0 +1,11 @@
+{
+  "id": "hotaka",
+  "name": "Hotaka (Japanese Alps)",
+  "category": "设计",
+  "lat": 36.289,
+  "lng": 137.648,
+  "radiusKm": 10,
+  "minElevation": 661,
+  "maxElevation": 3178,
+  "resolution": 512
+}

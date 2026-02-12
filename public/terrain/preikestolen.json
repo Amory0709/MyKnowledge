@@ -1,0 +1,11 @@
+{
+  "id": "preikestolen",
+  "name": "Lysefjorden (Norway)",
+  "category": "人文",
+  "lat": 59.02,
+  "lng": 6.15,
+  "radiusKm": 15,
+  "minElevation": -2,
+  "maxElevation": 844,
+  "resolution": 512
+}

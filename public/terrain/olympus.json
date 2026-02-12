@@ -1,0 +1,11 @@
+{
+  "id": "olympus",
+  "name": "Mount Olympus (Greece)",
+  "category": "社交",
+  "lat": 40.0855,
+  "lng": 22.3583,
+  "radiusKm": 10,
+  "minElevation": 2,
+  "maxElevation": 2880,
+  "resolution": 512
+}

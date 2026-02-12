@@ -1,0 +1,11 @@
+{
+  "id": "everest",
+  "name": "Mount Everest (Himalayas)",
+  "category": "数学",
+  "lat": 27.9881,
+  "lng": 86.925,
+  "radiusKm": 15,
+  "minElevation": 3428,
+  "maxElevation": 8741,
+  "resolution": 512
+}

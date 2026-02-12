@@ -1,0 +1,11 @@
+{
+  "id": "matterhorn",
+  "name": "Matterhorn (Alps)",
+  "category": "财务",
+  "lat": 45.9763,
+  "lng": 7.6586,
+  "radiusKm": 10,
+  "minElevation": 1108,
+  "maxElevation": 4520,
+  "resolution": 512
+}

@@ -92,6 +92,31 @@ export default function HomePage() {
 
         {/* Right controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Mountains nav button */}
+          <button
+            onClick={() => router.push('/mountains')}
+            style={{
+              padding: '5px 12px',
+              borderRadius: '20px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              color: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s',
+              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.28)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+          >
+            ⛰️ {lang === 'zh' ? '山脉' : 'Mountains'}
+          </button>
+
           {/* Language toggle */}
           <button
             onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}

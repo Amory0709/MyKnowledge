@@ -1,0 +1,11 @@
+{
+  "id": "fuji",
+  "name": "Mount Fuji (Japan)",
+  "category": "修身",
+  "lat": 35.3606,
+  "lng": 138.7274,
+  "radiusKm": 12,
+  "minElevation": 15,
+  "maxElevation": 3744,
+  "resolution": 512
+}
