@@ -8,6 +8,18 @@ interface ThreeGardenProps {
   onEntryClick: (id: string) => void
   searchFilter: string
   lang: 'zh' | 'en'
+  selectedCategory?: string | null
+}
+
+// Map each knowledge category → real mountain heightmap
+const CATEGORY_MOUNTAIN: Record<string, string> = {
+  '编程': 'fitz-roy',
+  '财务': 'matterhorn',
+  '数学': 'everest',
+  '设计': 'hotaka',
+  '人文': 'preikestolen',
+  '社交': 'olympus',
+  '修身': 'fuji',
 }
 
 // ── Volumetric Cloud Shader ──
@@ -165,7 +177,7 @@ function seeded(n: number) {
   return x - Math.floor(x)
 }
 
-export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: ThreeGardenProps) {
+export function ThreeGarden({ entries, onEntryClick, searchFilter, lang, selectedCategory }: ThreeGardenProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
 
@@ -345,53 +357,94 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
       }
 
       // ── 4. THE MOUNTAIN (far background, ~800-2000m away) ──
-      // Create a sharp, majestic peak centered in the view
-      const mtRes = 180
-      const mtGeo = new THREE.PlaneGeometry(2000, 1400, mtRes - 1, mtRes - 1)
-      mtGeo.rotateX(-Math.PI / 2)
-      const mtPos = mtGeo.attributes.position.array as Float32Array
       const peakHeight = 220 // Sized so peak appears in upper quarter of frame
-
-      // Procedural noise for mountain detail
-      function mNoise(x: number, z: number, oct = 6): number {
-        let v = 0, a = 1, f = 1, max = 0
-        for (let i = 0; i < oct; i++) {
-          v += (Math.sin(x * f * 0.7 + 1.3) * Math.cos(z * f * 0.5 + 2.1) * 0.5 + 0.5) * a
-          max += a; a *= 0.52; f *= 2.05
-        }
-        return v / max
-      }
-
-      for (let i = 0; i < mtPos.length / 3; i++) {
-        const x = mtPos[i * 3], z = mtPos[i * 3 + 2]
-        // Central peak: sharp pyramid shape
-        const dx = x / 400, dz = z / 500
-        const peakDist = Math.sqrt(dx * dx + dz * dz)
-        // Sharp conical peak shape with ridges
-        const baseShape = Math.max(0, 1.0 - peakDist * 0.85)
-        const sharpness = Math.pow(baseShape, 1.4) // Sharper peak
-        // Add ridges radiating from peak
-        const angle = Math.atan2(z, x)
-        const ridge = (Math.sin(angle * 4) * 0.5 + 0.5) * 0.15 * baseShape
-        // Rocky detail
-        const detail = mNoise(x * 0.008, z * 0.008, 6) * 0.12 * baseShape
-        const subDetail = mNoise(x * 0.025, z * 0.025, 4) * 0.05 * baseShape
-        const h = (sharpness + ridge + detail + subDetail) * peakHeight
-        mtPos[i * 3 + 1] = h
-      }
-      mtGeo.computeVertexNormals()
 
       const mtMat = new THREE.ShaderMaterial({
         vertexShader: mtVert, fragmentShader: mtFrag,
         uniforms: {
           uSunDir: { value: sunDir },
-          uSnowLine: { value: 0.55 }, // Snow starts at 55% of peak height
+          uSnowLine: { value: 0.55 },
           uPeakHeight: { value: peakHeight },
           uCamPos: { value: camera.position },
         },
       })
+
+      // Check if we should load a real terrain heightmap
+      const mountainId = selectedCategory ? CATEGORY_MOUNTAIN[selectedCategory] : null
+      let mtGeo: InstanceType<typeof THREE.PlaneGeometry>
+
+      if (mountainId) {
+        // ── Real terrain from heightmap ──
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error(`Failed to load ${mountainId}`))
+          img.src = `${basePath}/terrain/${mountainId}.png`
+        })
+        if (destroyed) return
+
+        const hCanvas = document.createElement('canvas')
+        hCanvas.width = img.width
+        hCanvas.height = img.height
+        const hCtx = hCanvas.getContext('2d')!
+        hCtx.drawImage(img, 0, 0)
+        const imageData = hCtx.getImageData(0, 0, img.width, img.height)
+        const pixels = imageData.data
+
+        const segments = Math.min(img.width - 1, 255)
+        mtGeo = new THREE.PlaneGeometry(2000, 1400, segments, segments)
+        mtGeo.rotateX(-Math.PI / 2)
+
+        const mtPos = mtGeo.attributes.position.array as Float32Array
+        const vps = segments + 1
+
+        for (let iy = 0; iy < vps; iy++) {
+          for (let ix = 0; ix < vps; ix++) {
+            const vi = iy * vps + ix
+            const px = Math.floor((ix / segments) * (img.width - 1))
+            const py = Math.floor((iy / segments) * (img.height - 1))
+            const pi = (py * img.width + px) * 4
+            const gray = pixels[pi]
+            mtPos[vi * 3 + 1] = (gray / 255) * peakHeight
+          }
+        }
+        mtGeo.computeVertexNormals()
+      } else {
+        // ── Procedural mountain (default) ──
+        const mtRes = 180
+        mtGeo = new THREE.PlaneGeometry(2000, 1400, mtRes - 1, mtRes - 1)
+        mtGeo.rotateX(-Math.PI / 2)
+        const mtPos = mtGeo.attributes.position.array as Float32Array
+
+        function mNoise(x: number, z: number, oct = 6): number {
+          let v = 0, a = 1, f = 1, max = 0
+          for (let i = 0; i < oct; i++) {
+            v += (Math.sin(x * f * 0.7 + 1.3) * Math.cos(z * f * 0.5 + 2.1) * 0.5 + 0.5) * a
+            max += a; a *= 0.52; f *= 2.05
+          }
+          return v / max
+        }
+
+        for (let i = 0; i < mtPos.length / 3; i++) {
+          const x = mtPos[i * 3], z = mtPos[i * 3 + 2]
+          const dx = x / 400, dz = z / 500
+          const peakDist = Math.sqrt(dx * dx + dz * dz)
+          const baseShape = Math.max(0, 1.0 - peakDist * 0.85)
+          const sharpness = Math.pow(baseShape, 1.4)
+          const angle = Math.atan2(z, x)
+          const ridge = (Math.sin(angle * 4) * 0.5 + 0.5) * 0.15 * baseShape
+          const detail = mNoise(x * 0.008, z * 0.008, 6) * 0.12 * baseShape
+          const subDetail = mNoise(x * 0.025, z * 0.025, 4) * 0.05 * baseShape
+          const h = (sharpness + ridge + detail + subDetail) * peakHeight
+          mtPos[i * 3 + 1] = h
+        }
+        mtGeo.computeVertexNormals()
+      }
+
       const mountain = new THREE.Mesh(mtGeo, mtMat)
-      mountain.position.set(0, -15, -1200) // Far behind the hills (front edge at z=-500)
+      mountain.position.set(0, -15, -1200)
       mountain.castShadow = true
       mountain.receiveShadow = true
       scene.add(mountain)
@@ -574,7 +627,7 @@ export function ThreeGarden({ entries, onEntryClick, searchFilter, lang }: Three
 
     init().catch(console.error)
     return () => { cleanupRef.current?.() }
-  }, [entries, onEntryClick, searchFilter, lang])
+  }, [entries, onEntryClick, searchFilter, lang, selectedCategory])
 
   return (
     <div ref={containerRef}
