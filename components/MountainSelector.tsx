@@ -33,7 +33,7 @@ export function MountainSelector({ onSelect }: MountainSelectorProps) {
   const [mountains, setMountains] = useState<MountainMeta[]>([])
 
   useEffect(() => {
-    const basePath = process.env.DEPLOY ? '/MyKnowledge' : ''
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
     fetch(`${basePath}/terrain/mountains.json`)
       .then((r) => r.json())
       .then(setMountains)
@@ -52,16 +52,16 @@ export function MountainSelector({ onSelect }: MountainSelectorProps) {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        style={{ textAlign: 'center', marginBottom: 50 }}
+        style={{ textAlign: 'center', marginBottom: 50, paddingTop: 40 }}
       >
         <h1 style={{
           fontSize: 36, fontWeight: 700, color: '#fff',
           margin: '0 0 8px', letterSpacing: '-0.5px',
         }}>
-          🏔️ 知识山脉
+          🏔️ Knowledge Mountains
         </h1>
         <p style={{ fontSize: 16, color: '#888', margin: 0 }}>
-          每座山峰，一个知识领域。选择你的攀登路线。
+          Each peak, a domain of knowledge. Pick your climb.
         </p>
       </motion.div>
 
@@ -106,7 +106,7 @@ export function MountainSelector({ onSelect }: MountainSelectorProps) {
                 top: 0, right: 0,
                 width: 120, height: 120,
                 opacity: 0.15,
-                backgroundImage: `url(${process.env.DEPLOY ? '/MyKnowledge' : ''}/terrain/${m.id}.png)`,
+                backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ''}/terrain/${m.id}.png)`,
                 backgroundSize: 'cover',
                 filter: 'blur(1px)',
                 borderRadius: '0 16px 0 0',
