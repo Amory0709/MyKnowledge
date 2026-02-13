@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useLang } from '@/components/LanguageProvider'
 
 interface MountainMeta {
   id: string
@@ -122,6 +123,7 @@ void main() {
 `
 
 export function TerrainViewer({ mountainId, onBack }: TerrainViewerProps) {
+  const { lang } = useLang()
   const containerRef = useRef<HTMLDivElement>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const [meta, setMeta] = useState<MountainMeta | null>(null)
@@ -337,7 +339,7 @@ export function TerrainViewer({ mountainId, onBack }: TerrainViewerProps) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
             >
-              ← Back
+              ← {lang === 'zh' ? '返回' : 'Back'}
             </button>
           )}
           <div>
@@ -347,7 +349,7 @@ export function TerrainViewer({ mountainId, onBack }: TerrainViewerProps) {
             {meta && (
               <p style={{ margin: '2px 0 0', fontSize: 13, color: '#666' }}>
                 {meta.category} · {meta.minElevation}m – {meta.maxElevation}m ·
-                {meta.radiusKm}km range
+                {meta.radiusKm}km {lang === 'zh' ? '范围' : 'range'}
               </p>
             )}
           </div>
@@ -363,7 +365,9 @@ export function TerrainViewer({ mountainId, onBack }: TerrainViewerProps) {
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🏔️</div>
-            <p style={{ color: '#888', fontSize: 14 }}>Loading terrain data...</p>
+            <p style={{ color: '#888', fontSize: 14 }}>
+              {lang === 'zh' ? '正在加载地形数据...' : 'Loading terrain data...'}
+            </p>
           </div>
         </div>
       )}
@@ -377,11 +381,11 @@ export function TerrainViewer({ mountainId, onBack }: TerrainViewerProps) {
           boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
           border: `2px solid ${style?.colorHex || '#ddd'}`,
         }}>
-          <p style={{ margin: 0, fontSize: 12, color: '#999' }}>📍 Location</p>
+          <p style={{ margin: 0, fontSize: 12, color: '#999' }}>📍 {lang === 'zh' ? '坐标' : 'Location'}</p>
           <p style={{ margin: '2px 0 8px', fontSize: 13, color: '#444' }}>
             {meta.lat.toFixed(3)}°, {meta.lng.toFixed(3)}°
           </p>
-          <p style={{ margin: 0, fontSize: 12, color: '#999' }}>⛰️ Elevation</p>
+          <p style={{ margin: 0, fontSize: 12, color: '#999' }}>⛰️ {lang === 'zh' ? '高差' : 'Elevation'}</p>
           <p style={{ margin: '2px 0 0', fontSize: 13, color: '#444' }}>
             {meta.maxElevation - meta.minElevation}m
           </p>

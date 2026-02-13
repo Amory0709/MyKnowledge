@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useLang } from '@/components/LanguageProvider'
 
 interface MountainMeta {
   id: string
@@ -30,6 +31,7 @@ const CATEGORY_STYLE: Record<string, { emoji: string; color: string; gradient: s
 }
 
 export function MountainSelector({ onSelect }: MountainSelectorProps) {
+  const { lang } = useLang()
   const [mountains, setMountains] = useState<MountainMeta[]>([])
 
   useEffect(() => {
@@ -58,10 +60,12 @@ export function MountainSelector({ onSelect }: MountainSelectorProps) {
           fontSize: 36, fontWeight: 700, color: '#fff',
           margin: '0 0 8px', letterSpacing: '-0.5px',
         }}>
-          🏔️ Knowledge Mountains
+          🏔️ {lang === 'zh' ? '知识山脉' : 'Knowledge Mountains'}
         </h1>
         <p style={{ fontSize: 16, color: '#888', margin: 0 }}>
-          Each peak, a domain of knowledge. Pick your climb.
+          {lang === 'zh'
+            ? '每座山峰，一个知识领域。选择你的攀登路线。'
+            : 'Each peak, a domain of knowledge. Pick your climb.'}
         </p>
       </motion.div>
 
