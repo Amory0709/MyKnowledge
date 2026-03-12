@@ -93,5 +93,47 @@
     "difficulty": "advanced",
     "readTime": 12,
     "data": {}
+  },
+  {
+    "id": "promise",
+    "title": "手写 Promise",
+    "titleEn": "Handwritten Promise",
+    "category": "JavaScript",
+    "categoryEn": "JavaScript",
+    "tags": ["JavaScript", "Promise", "异步", "手写", "原理"],
+    "public": true,
+    "componentType": "code-block",
+    "summary": "从发明者的角度理解 Promise，手写一个符合 Promises/A+ 规范的 Promise 类。",
+    "emoji": "🔮",
+    "difficulty": "intermediate",
+    "readTime": 15,
+    "data": {
+      "sections": [
+        {
+          "title": "为什么需要 Promise？",
+          "content": "以前我们用回调函数处理异步任务，但嵌套太深会导致「回调地狱」：\n\n```javascript\nfetchData(function(a) {\n  processA(a, function(b) {\n    processB(b, function(c) {\n      processC(c, function(d) {\n        // 嵌套到天荒地老\n      });\n    });\n  });\n});\n```\n\nPromise 发明出来就是为了解决这三个问题：\n1. 回调嵌套 → 链式 .then()\n2. 错误处理难 → 统一 .catch()\n3. 代码难读 → 线性代码"
+        },
+        {
+          "title": "三种状态",
+          "content": "```\npending    ──→  fulfilled  (成功)\n   │              ↘\n   │                rejected  (失败)\n   └──────────────────────↗\n```\n\n- pending：任务还在做，不知道结果\n- fulfilled：成功了！\n- rejected：失败了！\n\n⚠️ 状态一旦改变就不能再改"
+        },
+        {
+          "title": "完整代码",
+          "content": "```javascript\n// 状态常量\nconst PENDING = 'pending';\nconst FULFILLED = 'fulfilled';\nconst REJECTED = 'rejected';\n\nclass MyPromise {\n  constructor(executor) {\n    this.state = PENDING;\n    this.value = undefined;\n    this.onFulfilledCallbacks = [];\n    this.onRejectedCallbacks = [];\n\n    const resolve = (value) => {\n      if (this.state !== PENDING) return;\n      \n      if (value instanceof MyPromise) {\n        return value.then(resolve, reject);\n      }\n      \n      this.state = FULFILLED;\n      this.value = value;\n      queueMicrotask(() => {\n        this.onFulfilledCallbacks.forEach(cb => cb(this.value));\n      });\n    };\n\n    const reject = (reason) => {\n      if (this.state !== PENDING) return;\n      \n      this.state = REJECTED;\n      this.value = reason;\n      queueMicrotask(() => {\n        this.onRejectedCallbacks.forEach(cb => cb(this.value));\n      });\n    };\n\n    try {\n      executor(resolve, reject);\n    } catch (error) {\n      reject(error);\n    }\n  }\n\n  then(onFulfilled, onRejected) {\n    return new MyPromise((resolve, reject) => {\n      const _onFulfilled = typeof onFulfilled === 'function' \n        ? onFulfilled \n        : value => value;\n      \n      const _onRejected = typeof onRejected === 'function'\n        ? onRejected\n        : reason => { throw reason; };\n\n      if (this.state === FULFILLED) {\n        queueMicrotask(() => {\n          try {\n            const x = _onFulfilled(this.value);\n            resolvePromise(x, resolve, reject);\n          } catch (error) {\n            reject(error);\n          }\n        });\n      }\n      \n      else if (this.state === REJECTED) {\n        queueMicrotask(() => {\n          try {\n            const x = _onRejected(this.value);\n            resolvePromise(x, resolve, reject);\n          } catch (error) {\n            reject(error);\n          }\n        });\n      }\n      \n      else {\n        this.onFulfilledCallbacks.push(value => {\n          try {\n            const x = _onFulfilled(value);\n            resolvePromise(x, resolve, reject);\n          } catch (error) {\n            reject(error);\n          }\n        });\n        \n        this.onRejectedCallbacks.push(reason => {\n          try {\n            const x = _onRejected(reason);\n            resolvePromise(x, resolve, reject);\n          } catch (error) {\n            reject(error);\n          }\n        });\n      }\n    });\n  }\n\n  catch(onRejected) {\n    return this.then(null, onRejected);\n  }\n\n  finally(onFinally) {\n    return this.then(\n      value => {\n        onFinally();\n        return value;\n      },\n      reason => {\n        onFinally();\n        throw reason;\n      }\n    );\n  }\n\n  static resolve(value) {\n    return new MyPromise(resolve => resolve(value));\n  }\n\n  static reject(reason) {\n    return new MyPromise((_, reject) => reject(reason));\n  }\n\n  static all(promises) {\n    return new MyPromise((resolve, reject) => {\n      const results = [];\n      let completed = 0;\n\n      if (promises.length === 0) {\n        resolve(results);\n        return;\n      }\n\n      promises.forEach((promise, index) => {\n        promise.then(\n          value => {\n            results[index] = value;\n            completed++;\n            if (completed === promises.length) {\n              resolve(results);\n            }\n          },\n          reject\n        );\n      });\n    });\n  }\n\n  static race(promises) {\n    return new MyPromise((resolve, reject) => {\n      promises.forEach(promise => {\n        promise.then(resolve, reject);\n      });\n    });\n  }\n}\n\n// 根据返回值 x 决定 Promise2 的状态\nfunction resolvePromise(x, resolve, reject) {\n  if (x === resolve) {\n    return reject(new TypeError('Chaining cycle detected!'));\n  }\n\n  if (x instanceof MyPromise) {\n    if (x.state === PENDING) {\n      x.then(y => resolvePromise(y, resolve, reject), reject);\n    } else {\n      x.then(resolve, reject);\n    }\n    return;\n  }\n\n  if (x !== null && (typeof x === 'object' || typeof x === 'function')) {\n    let called = false;\n    try {\n      const then = x.then;\n      if (typeof then === 'function') {\n        then.call(x, \n          y => {\n            if (called) return;\n            called = true;\n            resolvePromise(y, resolve, reject);\n          },\n          r => {\n            if (called) return;\n            called = true;\n            reject(r);\n          }\n        );\n      } else {\n        resolve(x);\n      }\n    } catch (error) {\n      if (called) return;\n      reject(error);\n    }\n    return;\n  }\n\n  resolve(x);\n}\n```"
+        },
+        {
+          "title": "举例",
+          "content": "**例 1：基本用法**\n```javascript\nconst p = new MyPromise((resolve, reject) => {\n  setTimeout(() => {\n    resolve('成功！');\n  }, 1000);\n});\n\np.then(result => {\n  console.log(result); // 1秒后输出：成功！\n});\n```\n\n**例 2：链式调用**\n```javascript\nnew MyPromise(resolve => resolve(1))\n  .then(x => {\n    console.log(x); // 1\n    return x + 1;\n  })\n  .then(x => {\n    console.log(x); // 2\n    return x + 1;\n  })\n  .then(x => {\n    console.log(x); // 3\n  });\n```\n\n**例 3：catch 捕获错误**\n```javascript\nnew MyPromise((resolve, reject) => {\n  reject(new Error('出错了！'));\n})\n  .catch(error => {\n    console.log(error.message); // 出错了！\n  });\n```\n\n**例 4：all 并行**\n```javascript\nconst p1 = new MyPromise(r => setTimeout(() => r(1), 100));\nconst p2 = new MyPromise(r => setTimeout(() => r(2), 200));\nconst p3 = new MyPromise(r => setTimeout(() => r(3), 300));\n\nMyPromise.all([p1, p2, p3]).then(results => {\n  console.log(results); // [1, 2, 3] - 等全部完成\n});\n```\n\n**例 5：值的穿透**\n```javascript\nnew MyPromise(r => r(8))\n  .then()           // 空函数，透传\n  .then()           // 空函数，透传\n  .then(x => {\n    console.log(x); // 8 - 穿透上去\n  });\n```"
+        },
+        {
+          "title": "核心要点",
+          "content": "1. **resolve/reject 是 executor 传进来的**，不是 then 用的\n2. **then 返回新的 Promise**，这样才能链式调用\n3. **回调都异步执行**，用 queueMicrotask\n4. **resolvePromise 处理返回值**，支持 Promise 和 thenable\n5. **值的穿透**：then 的参数默认值是透传"
+        },
+        {
+          "title": "参考",
+          "content": "- [Promises/A+ 官方规范](https://promisesaplus.com/)\n- [一步一步实现完整 Promise - GitHub](https://github.com/xieranmaya/blog/issues/3)"
+        }
+      ]
+    }
   }
 ]
