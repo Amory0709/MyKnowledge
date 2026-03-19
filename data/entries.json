@@ -5,7 +5,14 @@
     "titleEn": "Computer Colors",
     "category": "计算机科学",
     "categoryEn": "Computer Science",
-    "tags": ["颜色", "RGB", "HEX", "HSL", "可视化", "交互"],
+    "tags": [
+      "颜色",
+      "RGB",
+      "HEX",
+      "HSL",
+      "可视化",
+      "交互"
+    ],
     "public": true,
     "componentType": "color-explorer",
     "summary": "探索计算机如何用数字描述世界上所有的颜色。从 RGB 到 HEX 到 HSL，每种格式都有它的故事。",
@@ -14,7 +21,12 @@
     "difficulty": "beginner",
     "readTime": 5,
     "data": {
-      "colorFormats": ["RGB", "HEX", "HSL", "OKLCH"],
+      "colorFormats": [
+        "RGB",
+        "HEX",
+        "HSL",
+        "OKLCH"
+      ],
       "funFacts": [
         {
           "id": 1,
@@ -55,7 +67,12 @@
     "titleEn": "World of Binary",
     "category": "计算机科学",
     "categoryEn": "Computer Science",
-    "tags": ["二进制", "数字", "基础", "编程"],
+    "tags": [
+      "二进制",
+      "数字",
+      "基础",
+      "编程"
+    ],
     "public": true,
     "componentType": "coming-soon",
     "summary": "一切都是 0 和 1——但这怎么可能代表文字、图片、音乐？揭开二进制的神秘面纱。",
@@ -70,7 +87,13 @@
     "titleEn": "Sorting Algorithms",
     "category": "算法",
     "categoryEn": "Algorithms",
-    "tags": ["排序", "算法", "可视化", "冒泡排序", "快速排序"],
+    "tags": [
+      "排序",
+      "算法",
+      "可视化",
+      "冒泡排序",
+      "快速排序"
+    ],
     "public": true,
     "componentType": "coming-soon",
     "summary": "看着数字「跳舞」，理解为什么有些排序方式天才，有些则低效。动画让算法活起来。",
@@ -85,7 +108,12 @@
     "titleEn": "Fourier Transform",
     "category": "数学",
     "categoryEn": "Mathematics",
-    "tags": ["数学", "信号", "频率", "音频"],
+    "tags": [
+      "数学",
+      "信号",
+      "频率",
+      "音频"
+    ],
     "public": false,
     "componentType": "coming-soon",
     "summary": "任何复杂的波形都可以分解为简单正弦波的叠加——这个思想改变了整个工程世界。",
@@ -100,7 +128,13 @@
     "titleEn": "Handwritten Promise",
     "category": "JavaScript",
     "categoryEn": "JavaScript",
-    "tags": ["JavaScript", "Promise", "异步", "手写", "原理"],
+    "tags": [
+      "JavaScript",
+      "Promise",
+      "异步",
+      "手写",
+      "原理"
+    ],
     "public": true,
     "componentType": "code-block",
     "summary": "从发明者的角度理解 Promise，手写一个符合 Promises/A+ 规范的 Promise 类。",
@@ -132,6 +166,56 @@
         {
           "title": "参考",
           "content": "- [Promises/A+ 官方规范](https://promisesaplus.com/)\n- [一步一步实现完整 Promise - GitHub](https://github.com/xieranmaya/blog/issues/3)"
+        }
+      ]
+    }
+  },
+  {
+    "id": "sdd",
+    "title": "SDD 规格驱动开发",
+    "titleEn": "Spec-Driven Development",
+    "category": "软件开发",
+    "categoryEn": "Software Development",
+    "tags": [
+      "AI",
+      "开发方法",
+      "SDD",
+      "vibe coding"
+    ],
+    "public": true,
+    "componentType": "article",
+    "summary": "SDD 是 vibe coding 的进化版，先写规格再写代码，解决 AI 生成代码质量差、无法维护、验收标准不清的问题。",
+    "summaryEn": "SDD is the evolution of vibe coding - write specs first, then code. Solves AI code quality, maintainability, and unclear acceptance criteria issues.",
+    "emoji": "📋",
+    "difficulty": "intermediate",
+    "readTime": 5,
+    "data": {
+      "sections": [
+        {
+          "title": "为什么需要 SDD",
+          "content": "Vibe Coding 三大痛点：1) 代码质量差（SQL注入、硬编码密码）2) 无法维护（命名混乱、改一行坏全身）3) 验收标准不清（反复修改）"
+        },
+        {
+          "title": "SDD 四个阶段",
+          "content": "1. Specify - 回答做什么、给谁用、怎么算成功 2. Plan - 技术栈、架构、约束 3. Tasks - 拆成可独立测试的小任务 4. Implement - 一个个任务做，频繁验收"
+        },
+        {
+          "title": "工具",
+          "content": "GitHub Spec Kit CLI - spec create my-project"
+        },
+        {
+          "title": "适合谁",
+          "content": "原型/MVP 用 vibe coding，生产级产品用 SDD"
+        }
+      ],
+      "references": [
+        {
+          "title": "Spec Driven Development: The Evolution Beyond Vibe Coding",
+          "url": "https://danielsogl.medium.com/spec-driven-development-sdd-the-evolution-beyond-vibe-coding-1e431ae7d47b"
+        },
+        {
+          "title": "Thoughtworks: Spec-driven development",
+          "url": "https://www.thoughtworks.com/insights/blog/agile-engineering-practices/spec-driven-development-unpacking-2025-new-engineering-practices"
         }
       ]
     }
