@@ -219,5 +219,58 @@
         }
       ]
     }
+  },
+  {
+    "id": "ecc-agent-harness",
+    "title": "ECC - Agent Harness 性能优化系统",
+    "titleEn": "ECC - Agent Harness Performance Optimization",
+    "category": "AI Agent 工程",
+    "categoryEn": "AI Agent Engineering",
+    "tags": [
+      "AI Agent",
+      "Harness",
+      "Skills",
+      "Memory Optimization",
+      "Security",
+      "Claude Code",
+      "Instincts"
+    ],
+    "public": true,
+    "componentType": "article",
+    "summary": "ECC 是一套完整的 AI Agent 工程系统，232+ 技能、60+ 专业 agent、基于信心的自动学习本能系统、内置安全审计。GitHub 185.9K 星。",
+    "summaryEn": "ECC is a complete agent engineering system with 232+ skills, 60+ specialized agents, confidence-based automatic learning instincts, and built-in security auditing. 185.9K GitHub stars.",
+    "emoji": "🧠",
+    "difficulty": "advanced",
+    "readTime": 8,
+    "data": {
+      "sections": [
+        {
+          "title": "核心组件",
+          "content": "Skills（232+）、Instincts v2（自动学习）、Hook-based Automations（PreToolUse/PostToolUse）、AgentShield（安全扫描）、60+ Agents、MCP Configs（14）、76 Commands"
+        },
+        {
+          "title": "架构设计",
+          "content": ".ecc/ 运作核心目录、SQLite 审计数据库、六层管道架构（Command → Agent → Skill → Tool → Hook → Audit）"
+        },
+        {
+          "title": "关键洞察",
+          "content": "1) 换 harness 比换模型更有效（编排层质量是瓶颈）2) Instinct 自动学习让 AI 从行为中进化 3) 安全应该是架构内置层"
+        },
+        {
+          "title": "对 OpenClaw 的借鉴",
+          "content": "1) Instinct 自动学习系统（最高优先级）2) AgentShield 内置安全 3) Research-first 工作流强制 4) 战略压缩时机感知"
+        }
+      ],
+      "references": [
+        {
+          "title": "ECC GitHub",
+          "url": "https://github.com/affaan-m/ECC"
+        },
+        {
+          "title": "ECC Tools",
+          "url": "https://ecc.tools/"
+        }
+      ]
+    }
   }
 ]
