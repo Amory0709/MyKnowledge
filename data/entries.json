@@ -272,5 +272,54 @@
         }
       ]
     }
+  },
+  {
+    "id": "openmythos",
+    "title": "OpenMythos - Claude Mythos 架构开源重建",
+    "titleEn": "OpenMythos - Claude Mythos Architecture Reconstruction",
+    "category": "AI 模型架构研究",
+    "categoryEn": "AI Model Architecture Research",
+    "tags": [
+      "Claude Mythos",
+      "Recurrent-Depth Transformer",
+      "RDT",
+      "MoE",
+      "推理模型",
+      "PyTorch",
+      "AI Agent"
+    ],
+    "public": true,
+    "componentType": "article",
+    "summary": "OpenMythos 是对 Claude Mythos 架构的开源理论重建，实现 Recurrent-Depth Transformer（RDT），770M 参数达到 1.3B 标准 Transformer 效果。开发者 Kye Gomez（22岁）2周内获得 10K+ stars。",
+    "summaryEn": "OpenMythos is an open-source theoretical reconstruction of Claude Mythos, implementing Recurrent-Depth Transformer where 770M params match 1.3B transformer quality. Developer Kye Gomez (22) got 10K+ stars in 2 weeks.",
+    "emoji": "🔬",
+    "difficulty": "advanced",
+    "readTime": 6,
+    "data": {
+      "sections": [
+        {
+          "title": "RDT 三阶段架构",
+          "content": "Prelude（一次性编码）→ Recurrent Block（循环 T 次，最多 16 次）→ Coda（一次性解码）。循环推理让相同权重在不同迭代中自适应计算。"
+        },
+        {
+          "title": "关键技术",
+          "content": "MLA 低秩注意力、GQA 分组查询、Sparse MoE 稀疏专家混合、ACT 自适应计算时间。770M 参数 ≈ 1.3B 标准 Transformer 效果。"
+        },
+        {
+          "title": "mythos-router Strict Write Discipline",
+          "content": "SHA-256 文件系统验证防止 AI 撒谎（声称写了代码但实际没写）。AI Coding 工程的实用突破。"
+        }
+      ],
+      "references": [
+        {
+          "title": "OpenMythos GitHub",
+          "url": "https://github.com/kyegomez/OpenMythos"
+        },
+        {
+          "title": "mythos-router",
+          "url": "https://github.com/thewaltero/mythos-router"
+        }
+      ]
+    }
   }
 ]
