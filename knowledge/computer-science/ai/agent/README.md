@@ -8,6 +8,7 @@
 
 - **[framework.md](./framework.md)** — 9 层 Agent Engineering Framework（顶层知识地图，2026-06 建）
 - **[framework.en.md](./framework.en.md)** — English version
+- **[learning-loop.md](./learning-loop.md)** — 6 步学习 loop + 风险应对 + TODO
 
 ## 🗂️ 9 层文件夹
 
