@@ -30,9 +30,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: dashboard
 
       - name: Build
         run: DEPLOY=true npm run build
+        working-directory: dashboard
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
