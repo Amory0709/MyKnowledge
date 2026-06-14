@@ -49,19 +49,45 @@
 
 ## 🗂️ 工作流
 
-**每天（< 5 分钟）**
-- 看到 agent 相关推文/文章/视频 → 丢进 `inbox/YYYY-MM-DD.md`
+### 看到新东西时（每天 < 5 分钟）
+- 推文/文章/视频 → 丢进 `inbox/YYYY-MM-DD.md`
 - 格式：`- [标题](链接) — 一句话摘要`
 
-**周末（30-60 分钟）**
-- Triage inbox：⭐ 必学 / 📖 感兴趣 / 🗑 跳过
-- ⭐ 项目 → 决定放在哪个层文件夹 / 写卡片
-- 在 `weekly/YYYY-Wxx.md` 复盘
+### 周末 triage（30-60 分钟）
+- ⭐ 必学 → 转 `cards/<concept>.md` 或放进对应层文件夹
+- 📖 感兴趣 → 排进下周
+- 🗑 跳过 → 删
 
-**新内容归档时**
+### 归档时问 3 个问题
+1. **它解决哪一层的问题？**（主落点）
+2. **它和哪几层有交互？**（跨层影响）
+3. **我已知 vs 未知的边界在哪？**（⭐ 必学 vs 📖 感兴趣 vs 🗑 跳过）
+
+### 归档示例
+
+**新论文："Agent self-correction via trajectory reflection"**
+- 主落点：L9 Harness > Verification & Safety
+- 跨层：L3 推理 > Reflexion、L7 生产 > Eval
+- 标签：⭐ 必学
+
+**新发布："LangGraph v2 with built-in checkpointing"**
+- 主落点：L9 Harness > State & Memory > Checkpoint
+- 跨层：L6 编排（框架）、L7 生产
+- 标签：📖 感兴趣
+
+**新工具："MCP - Model Context Protocol"**
+- 主落点：L9 Harness > Tool Orchestration
+- 跨层：L5 工具（schema）
+- 标签：⭐ 必学
+
+### 📋 文档约定
+
 - 笔记属于哪层 → 放进 `Lx-xxx/` 文件夹
-- 跨层概念 → 标 `跨层: Ly, Lz` 在 frontmatter
-- 概念卡片 → 放 `cards/<concept>.md`
+- 概念卡片 → 放 `cards/<concept-name>.md`，文件名 kebab-case
+- 卡片里标注：`主层: Lx`、`跨层: Ly, Lz`
+- 每日 inbox → `inbox/YYYY-MM-DD.md`
+- 每周复盘 → `weekly/YYYY-Wxx.md`
+- 季度复盘 → 用 framework 当 checklist，看哪层还薄弱
 
 ## 🔗 与 Ori 的协作
 
