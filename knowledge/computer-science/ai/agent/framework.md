@@ -6,34 +6,52 @@
 
 ---
 
-## 心智模型：9 层
+## 心智模型：演进路径
+
+不是"9 层堆在一起"，而是**一步一步加能力**。每一"+X"都是对前一阶段限制的回应：
 
 ```
-   ┌──────────────────────────────────────────┐
-   │  L9 Harness (Harness Engineering)        │
-   │  ├─ Context Engineering                   │
-   │  ├─ Tool Orchestration                    │
-   │  ├─ State & Memory                        │
-   │  ├─ Verification & Safety                 │
-   │  ├─ Agentic Loop                          │
-   │  │   ├─ Inner Loop (单轮 think-act)       │
-   │  │   ├─ Task Loop  (多轮任务)              │
-   │  │   └─ Meta Loop  (跨任务规划/反思)       │
-   │  ├─ Observability                         │
-   │  └─ Cost & Latency                        │
-   │──────────────────────────────────────────│
-   │  L8 应用                                  │
-   │  L7 生产    L4 记忆   L1 模型             │
-   │  L6 编排    L3 推理   L2 交互             │
-   │                L5 工具                    │
-   └──────────────────────────────────────────┘
+LLM                                              2020
+  │ + Prompt Engineering                        2022
+  ▼                                                (CoT, system prompt)
+Prompted LLM
+  │ + Tool Use / Function Calling               2023
+  ▼
+Tool-Using LLM
+  │ + Agentic Loop (ReAct)                      2023
+  ▼
+Single Agent
+  │ + Memory / RAG                              2023-24
+  ▼
+Persistent Agent
+  │ + Multi-Agent Orchestration                 2024
+  ▼
+Multi-Agent System
+  │ + Harness Engineering                       2024-25
+  ▼
+Production-Grade Agent  ← 今天的 frontier
+                              (Claude Code, Devin, Codex)
 ```
 
-> **L9 = Harness**（行业术语）：包裹 LLM 的整个工程系统。Loop 是 harness 内的 runtime 行为，不是独立的"层"。
->
-> **L8 = 应用形态**：具体的 agent 类型（编码、浏览器、研究...）。
->
-> **L1-L7 = 组件层**：模型、交互、推理、记忆、工具、编排、生产。
+### 8 阶段详解
+
+| # | 阶段 | 时期 | 加了什么 | 框架层 | 解决什么问题 | 代表里程碑 |
+|---|---|---|---|---|---|---|
+| 1 | **LLM** | 2020-22 | 基础文本生成 | L1 | — | GPT-3 (2020) |
+| 2 | **+ Prompt** | 2022-23 | 行为塑形 | L2 | LLM 太"原始" | CoT (Jan 2022) |
+| 3 | **+ Tool** | 2023 | 行动能力 | L5 | LLM 只能说不能做 | Function Calling (2023) |
+| 4 | **+ Loop** | 2023 | 自主循环 | L9 > Loop | 单次回答不能完成多步 | ReAct (2022 paper, 2023 落地) |
+| 5 | **+ Memory** | 2023-24 | 持续记忆 | L4 | agent 每次从零开始 | RAG, vector DB |
+| 6 | **+ Multi** | 2024 | 多 agent 协作 | L6 | 单 agent 处理不了复杂任务 | AutoGen, CrewAI (2024) |
+| 7 | **+ Harness** | 2024-25 | 系统工程 | L9 | 整套 agent 跑不稳 | ECC, Claude Code, OpenAI Agents SDK |
+| 8 | **= Frontier** | 2026+ | 生产级应用 | L8 | — | Claude Code, Devin, Codex |
+
+### 关键洞察
+
+- **L9 Harness 不是一开始就有**——它是其他层成熟后**事后总结的纪律**，不是设计的起点
+- 每一"+X"都是对前一阶段**实际限制**的回应（LLM 不够好 → 加 prompt；单次回答不够 → 加 loop；agent 失忆 → 加 memory）
+- **9 层是横向切面**（同时存在的组件），**演进是纵向时序**（先后发明的历史）—— 两种视图互补
+- 你现在学 agent，本质是**从 L1 出发，按这张演进图逐层补上**
 
 ---
 
