@@ -7,7 +7,6 @@
 ## 📚 核心文档
 
 - **[framework.md](./framework.md)** — 9 层 Agent Engineering Framework（顶层知识地图，2026-06 建）
-- **[ai-agent-from-scratch.md](./ai-agent-from-scratch.md)** — 从零搭建 Agent（4 阶段路线图）
 
 ## 🗂️ 9 层文件夹
 
