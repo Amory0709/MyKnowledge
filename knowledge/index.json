@@ -20,10 +20,10 @@
     { "id": "society", "name": "社会学", "nameEn": "Society", "children": [] }
   ],
   "entries": [
-    { "id": "ecc-agent-harness", "file": "computer-science/ai/ecc-agent-harness.md", "category": "computer-science/ai" },
-    { "id": "openmythos", "file": "computer-science/ai/openmythos.md", "category": "computer-science/ai" },
-    { "id": "ai-agent-research", "file": "computer-science/ai/ai-agent-research.md", "category": "computer-science/ai" },
-    { "id": "ai-agent-from-scratch", "file": "computer-science/ai/ai-agent-from-scratch.md", "category": "computer-science/ai" },
+    { "id": "ecc-agent-harness", "file": "computer-science/ai/agent/ecc-agent-harness.md", "category": "computer-science/ai" },
+    { "id": "openmythos", "file": "computer-science/ai/agent/openmythos.md", "category": "computer-science/ai" },
+    { "id": "ai-agent-research", "file": "computer-science/ai/agent/ai-agent-research.md", "category": "computer-science/ai" },
+    { "id": "ai-agent-from-scratch", "file": "computer-science/ai/agent/ai-agent-from-scratch.md", "category": "computer-science/ai" },
     { "id": "sorting-algorithms", "file": "computer-science/algorithm/sorting-algorithms.md", "category": "computer-science/algorithm" },
     { "id": "project-eden", "file": "computer-science/3d-gen/project-eden.md", "category": "computer-science/3d-gen" },
     { "id": "tanstack", "file": "computer-science/3d-gen/tanstack.md", "category": "computer-science/3d-gen" },
