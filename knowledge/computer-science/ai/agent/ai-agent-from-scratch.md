@@ -1,3 +1,10 @@
+---
+type: 路线图
+covers: [L1, L2, L3, L4, L5, L6, L7, L8, L9]
+tags: [roadmap, learning-path, scratch, from-zero]
+date: 2026-06-14
+---
+
 # AI Agent 从零搭建
 
 > 学习从工程角度搭建一个生产级别的 AI Agent 系统

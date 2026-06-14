@@ -1,3 +1,11 @@
+---
+type: 调研笔记
+primary_layer: L9
+cross_layers: [L6]
+tags: [harness, ecc, multi-agent, hooks, skills, instincts, security]
+date: 2026-05-29
+---
+
 # ECC - Agent Harness 性能优化系统
 
 > 一套完整的 AI Agent 工程系统

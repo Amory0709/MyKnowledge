@@ -12,16 +12,19 @@
 
 每层是一类**独立能力域**，新东西（论文/工具/视频）落进对应层（或跨层）。配合 `cards/` 下的概念卡片使用。
 
-## 与已有笔记的关系
+## 📚 笔记索引（按层归类）
 
-| 已有笔记 | 在框架里的位置 |
-|---|---|
-| [ai-agent-from-scratch.md](./ai-agent-from-scratch.md) 的 Phase 1-4 | 整张地图的学习路径 |
-| 4 元素公式 "Agent = LLM + Tools + Memory + Planning" | L1 / L5 / L4 / L3 |
-| 8 设计模式 (ReAct / Router / Orchestrator / ...) | L3 推理 + L6 编排 |
-| [ecc-agent-harness.md](./ecc-agent-harness.md) | **L9 Harness**（ECC 整个就是 harness 工程） |
-| [openmythos.md](./openmythos.md) (RDT 架构) | L1 模型的架构变体 |
-| [ai-agent-research.md](./ai-agent-research.md) | L4 记忆（Memento / Supermemory）+ L6 编排（Hive Mind） |
+| 主层 | 笔记 | 跨层 |
+|---|---|---|
+| **L1 模型** | [openmythos.md](./openmythos.md) — RDT 架构变体 | L3 推理 / L8 应用 |
+| **L4 记忆** | [ai-agent-research.md](./ai-agent-research.md) — Memento / Supermemory | L6 编排 / L8 应用 / L9 Harness |
+| **L6 编排** | [ai-agent-research.md](./ai-agent-research.md) — Hive Mind | (与 L4 共享) |
+| **L9 Harness** | [ecc-agent-harness.md](./ecc-agent-harness.md) — ECC 系统 | L6 编排 |
+| **路线图** | [ai-agent-from-scratch.md](./ai-agent-from-scratch.md) — 4 阶段 | 覆盖全部 L1-L9 |
+
+**未覆盖的层**（需要后续补充笔记 / 卡片）：L2 交互 / L3 推理 / L5 工具 / L7 生产 / L8 应用
+
+**未覆盖的概念**（来自已有笔记）：4 元素公式 / 8 设计模式 → 适合拆成 `cards/` 下的独立卡片
 
 ---
 

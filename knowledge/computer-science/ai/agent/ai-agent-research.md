@@ -1,3 +1,11 @@
+---
+type: 调研笔记
+primary_layer: L4
+cross_layers: [L6, L8, L9]
+tags: [memory, multi-agent, research, memento, supermemory, hive-mind]
+date: 2026-03-23
+---
+
 # AI Agent 研究笔记
 
 _建立于 2026-03-23_

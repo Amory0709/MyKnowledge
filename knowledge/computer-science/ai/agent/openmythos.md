@@ -1,3 +1,11 @@
+---
+type: 调研笔记
+primary_layer: L1
+cross_layers: [L3, L8]
+tags: [Claude-Mythos, RDT, MoE, inference-model, PyTorch, mythos-router, SWD, harness]
+date: 2026-05-29
+---
+
 # OpenMythos - Claude Mythos 架构开源重建
 
 > 来源：GitHub (kyegomez/OpenMythos)、Forbes、MarkTechPost、Decrypt、OpenClaw API Blog、themenonlab 等

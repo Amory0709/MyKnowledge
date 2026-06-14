@@ -24,6 +24,20 @@
 
 ---
 
+## 📑 笔记按层索引
+
+| 层 | 笔记 |
+|---|---|
+| **L1 模型** | [openmythos.md](./openmythos.md) — RDT 架构 |
+| **L4 记忆** | [ai-agent-research.md](./ai-agent-research.md) — Memento / Supermemory |
+| **L6 编排** | [ai-agent-research.md](./ai-agent-research.md) — Hive Mind |
+| **L9 Harness** | [ecc-agent-harness.md](./ecc-agent-harness.md) — ECC 系统 |
+| **路线图** | [ai-agent-from-scratch.md](./ai-agent-from-scratch.md) — 4 阶段路线 |
+
+**待补层**：L2 交互 / L3 推理 / L5 工具 / L7 生产 / L8 应用
+
+---
+
 ## 🎯 9 层框架速览
 
 | 层 | 名称 | 一句话 |
