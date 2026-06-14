@@ -9,7 +9,7 @@
       "children": [
         { "id": "ai", "name": "AI", "children": [] },
         { "id": "algorithm", "name": "算法", "children": [] },
-        {id": "3d-gen", "name": "3D 生成", "children": [] },
+        { "id": "3d-gen", "name": "3D 生成", "children": [] },
         { "id": "fundamentals", "name": "计算机基础", "children": [] },
         { "id": "graphics", "name": "图形学", "children": [] },
         { "id": "javascript", "name": "JavaScript", "children": [] },
