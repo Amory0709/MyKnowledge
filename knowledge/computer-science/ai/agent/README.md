@@ -7,6 +7,7 @@
 ## 📚 核心文档
 
 - **[framework.md](./framework.md)** — 9 层 Agent Engineering Framework（顶层知识地图，2026-06 建）
+- **[framework.en.md](./framework.en.md)** — English version
 
 ## 🗂️ 9 层文件夹
 
