@@ -4,46 +4,39 @@
 
 ---
 
-## 📚 文档索引
+## 📚 核心文档
 
-### 核心知识地图
 - **[framework.md](./framework.md)** — 9 层 Agent Engineering Framework（顶层知识地图，2026-06 建）
-
-### 学习路线
 - **[ai-agent-from-scratch.md](./ai-agent-from-scratch.md)** — 从零搭建 Agent（4 阶段路线图）
 
-### 调研笔记
-- **[ai-agent-research.md](./ai-agent-research.md)** — Agent 领域研究（Memento / Supermemory / Hive Mind）
-- **[ecc-agent-harness.md](./ecc-agent-harness.md)** — ECC 系统（Agent Harness 性能优化）
-- **[openmythos.md](./openmythos.md)** — OpenMythos 架构研究（RDT / MoE）
+## 🗂️ 9 层文件夹
 
-### 工作目录
+| 层 | 文件夹 | 主题 |
+|---|---|---|
+| **L9** | [L9-harness/](./L9-harness/) | Harness（系统工程） |
+| **L8** | [L8-application/](./L8-application/) | 应用形态 |
+| **L7** | [L7-production/](./L7-production/) | 生产化 |
+| **L6** | [L6-orchestration/](./L6-orchestration/) | 编排 |
+| **L5** | [L5-tools/](./L5-tools/) | 工具 |
+| **L4** | [L4-memory/](./L4-memory/) | 记忆 |
+| **L3** | [L3-reasoning/](./L3-reasoning/) | 推理 |
+| **L2** | [L2-interaction/](./L2-interaction/) | 交互 |
+| **L1** | [L1-model/](./L1-model/) | 模型 |
+
+每层文件夹的 README 简介该层；该层相关笔记也放在这里。
+
+## 🛠️ 工作目录
+
 - **[cards/](./cards/)** — 概念卡片（每张讲清一个概念）
 - **[inbox/](./inbox/)** — 每日信息收集（标题 + 一句话 + 链接）
 - **[weekly/](./weekly/)** — 每周复盘
-
----
-
-## 📑 笔记按层索引
-
-| 层 | 笔记 |
-|---|---|
-| **L1 模型** | [openmythos.md](./openmythos.md) — RDT 架构 |
-| **L4 记忆** | [ai-agent-research.md](./ai-agent-research.md) — Memento / Supermemory |
-| **L6 编排** | [ai-agent-research.md](./ai-agent-research.md) — Hive Mind |
-| **L9 Harness** | [ecc-agent-harness.md](./ecc-agent-harness.md) — ECC 系统 |
-| **路线图** | [ai-agent-from-scratch.md](./ai-agent-from-scratch.md) — 4 阶段路线 |
-
-**待补层**：L2 交互 / L3 推理 / L5 工具 / L7 生产 / L8 应用
-
----
 
 ## 🎯 9 层框架速览
 
 | 层 | 名称 | 一句话 |
 |---|---|---|
 | **L9** | Harness | 包裹 LLM 的整个工程系统 |
-| L8 | 应用 | 具体 agent 形态（编码/浏览器/研究...） |
+| L8 | 应用 | 具体 agent 形态 |
 | L7 | 生产 | 可观测性 / 评估 / 成本 / 安全 |
 | L6 | 编排 | 多 agent 协作 + 框架 |
 | L5 | 工具 | Function calling / MCP / 沙箱 |
@@ -54,8 +47,6 @@
 
 完整内容 → [framework.md](./framework.md)
 
----
-
 ## 🗂️ 工作流
 
 **每天（< 5 分钟）**
@@ -64,15 +55,13 @@
 
 **周末（30-60 分钟）**
 - Triage inbox：⭐ 必学 / 📖 感兴趣 / 🗑 跳过
-- ⭐ 项目 → 在 `cards/<concept>.md` 写一张概念卡片
+- ⭐ 项目 → 决定放在哪个层文件夹 / 写卡片
 - 在 `weekly/YYYY-Wxx.md` 复盘
 
-**新概念写卡片时**
-- 标 `主层: Lx`、`跨层: Ly, Lz`
-- 跨层关系标注清楚
-- 找已有的笔记关联（[ai-agent-from-scratch.md](./ai-agent-from-scratch.md) 等）
-
----
+**新内容归档时**
+- 笔记属于哪层 → 放进 `Lx-xxx/` 文件夹
+- 跨层概念 → 标 `跨层: Ly, Lz` 在 frontmatter
+- 概念卡片 → 放 `cards/<concept>.md`
 
 ## 🔗 与 Ori 的协作
 

@@ -6,28 +6,6 @@
 
 ---
 
-## 怎么用本框架
-
-这是**知识地图（what to learn）**，不是路线图（how to learn）。路线图见 [ai-agent-from-scratch.md](./ai-agent-from-scratch.md)。
-
-每层是一类**独立能力域**，新东西（论文/工具/视频）落进对应层（或跨层）。配合 `cards/` 下的概念卡片使用。
-
-## 📚 笔记索引（按层归类）
-
-| 主层 | 笔记 | 跨层 |
-|---|---|---|
-| **L1 模型** | [openmythos.md](./openmythos.md) — RDT 架构变体 | L3 推理 / L8 应用 |
-| **L4 记忆** | [ai-agent-research.md](./ai-agent-research.md) — Memento / Supermemory | L6 编排 / L8 应用 / L9 Harness |
-| **L6 编排** | [ai-agent-research.md](./ai-agent-research.md) — Hive Mind | (与 L4 共享) |
-| **L9 Harness** | [ecc-agent-harness.md](./ecc-agent-harness.md) — ECC 系统 | L6 编排 |
-| **路线图** | [ai-agent-from-scratch.md](./ai-agent-from-scratch.md) — 4 阶段 | 覆盖全部 L1-L9 |
-
-**未覆盖的层**（需要后续补充笔记 / 卡片）：L2 交互 / L3 推理 / L5 工具 / L7 生产 / L8 应用
-
-**未覆盖的概念**（来自已有笔记）：4 元素公式 / 8 设计模式 → 适合拆成 `cards/` 下的独立卡片
-
----
-
 ## 心智模型：9 层
 
 ```
@@ -66,7 +44,6 @@ LLM 本身的能力边界
 - 主流模型横评（GPT / Claude / Gemini / Mistral / 开源）
 - Context window、tokens、cost 模型
 - 能力上限 / 典型失败模式
-- **关联笔记**：[openmythos.md](./openmythos.md) - RDT 等架构变体
 
 ### 💬 L2 交互层
 - Messages 结构（system / user / assistant / tool）
@@ -78,14 +55,13 @@ LLM 本身的能力边界
 - CoT、ToT
 - ReAct、Plan-and-Execute、Reflexion
 - 任务分解
-- **关联笔记**：[ai-agent-from-scratch.md](./ai-agent-from-scratch.md) - 8 设计模式
 
 ### 💾 L4 记忆层
 - Context window 管理
 - RAG（vector DB / BM25 / hybrid）
 - 长期 vs 短期 / episodic vs semantic
 - 摘要压缩
-- **关联笔记**：[ai-agent-research.md](./ai-agent-research.md) - Memento / Supermemory
+- "Memory as a tool" vs "Memory as state"
 
 ### 🔧 L5 工具层
 - Function calling 机制
@@ -98,7 +74,6 @@ LLM 本身的能力边界
 - 拓扑：supervisor / swarm / hierarchical
 - Handoff、消息传递、共享状态
 - 框架：LangGraph / OpenAI Agents SDK / CrewAI / Pydantic AI
-- **关联笔记**：[ai-agent-from-scratch.md](./ai-agent-from-scratch.md) - Router / Orchestrator-Workers 模式
 
 ### 🏭 L7 生产层
 - 可观测性（trace / span / LangSmith / Langfuse）
@@ -162,8 +137,6 @@ LLM 本身的能力边界
 
 **Mantra**: *"The harness is the new prompt."* —— 模型越来越强，harness 决定上限。
 
-**关联笔记**：[ecc-agent-harness.md](./ecc-agent-harness.md) - ECC 系统的 6 层管道 `Command → Agent → Skill → Tool → Hook → Audit` 是 harness 的工程实现范例
-
 ---
 
 ## 跨层概念
@@ -206,8 +179,9 @@ LLM 本身的能力边界
 
 ## 文档约定
 
+- 每层有独立文件夹 `Lx-xxx/`，存放该层相关笔记
 - 概念卡片放 `cards/<concept-name>.md`，文件名 kebab-case
-- 卡片里标注：`主层: L9 Harness > Tool Orchestration`、`跨层: L5, L7`
+- 卡片里标注：`主层: Lx`、`跨层: Ly, Lz`
 - 每日 inbox：`inbox/YYYY-MM-DD.md`
 - 每周复盘：`weekly/YYYY-Wxx.md`
 - 季度复盘：用 framework 当 checklist，看哪层还薄弱
