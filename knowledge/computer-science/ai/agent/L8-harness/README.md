@@ -1,9 +1,9 @@
-# L9 Harness（系统工程）
+# L8 Harness（系统工程）
 
 > 包裹 LLM 的整个工程系统
 
-**框架位置**：9 层中的第 9 层（最顶层 / 系统工程）
-**详细内容**：[framework.md](../../framework.md#-l9-harness系统工程)
+**框架位置**：9 层中的第 8 层（系统层 / 工程层）
+**详细内容**：[framework.md](../../framework.md#-l8-harness系统工程)
 
 ## 本层要回答的问题
 

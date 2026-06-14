@@ -40,15 +40,15 @@ Production-Grade Agent  ← 今天的 frontier
 | 1 | **LLM** | 2020-22 | 基础文本生成 | L1 | — | GPT-3 (2020) |
 | 2 | **+ Prompt** | 2022-23 | 行为塑形 | L2 | LLM 太"原始" | CoT (Jan 2022) |
 | 3 | **+ Tool** | 2023 | 行动能力 | L5 | LLM 只能说不能做 | Function Calling (2023) |
-| 4 | **+ Loop** | 2023 | 自主循环 | L9 > Loop | 单次回答不能完成多步 | ReAct (2022 paper, 2023 落地) |
+| 4 | **+ Loop** | 2023 | 自主循环 | L8 > Loop | 单次回答不能完成多步 | ReAct (2022 paper, 2023 落地) |
 | 5 | **+ Memory** | 2023-24 | 持续记忆 | L4 | agent 每次从零开始 | RAG, vector DB |
 | 6 | **+ Multi** | 2024 | 多 agent 协作 | L6 | 单 agent 处理不了复杂任务 | AutoGen, CrewAI (2024) |
-| 7 | **+ Harness** | 2024-25 | 系统工程 | L9 | 整套 agent 跑不稳 | ECC, Claude Code, OpenAI Agents SDK |
-| 8 | **= Frontier** | 2026+ | 生产级应用 | L8 | — | Claude Code, Devin, Codex |
+| 7 | **+ Harness** | 2024-25 | 系统工程 | L8 | 整套 agent 跑不稳 | ECC, Claude Code, OpenAI Agents SDK |
+| 8 | **= Frontier** | 2026+ | 生产级应用 | L9 | — | Claude Code, Devin, Codex |
 
 ### 关键洞察
 
-- **L9 Harness 不是一开始就有**——它是其他层成熟后**事后总结的纪律**，不是设计的起点
+- **L8 Harness 不是一开始就有**——它是其他层成熟后**事后总结的纪律**，不是设计的起点
 - 每一"+X"都是对前一阶段**实际限制**的回应（LLM 不够好 → 加 prompt；单次回答不够 → 加 loop；agent 失忆 → 加 memory）
 - **9 层是横向切面**（同时存在的组件），**演进是纵向时序**（先后发明的历史）—— 两种视图互补
 - 你现在学 agent，本质是**从 L1 出发，按这张演进图逐层补上**
@@ -100,15 +100,7 @@ LLM 本身的能力边界
 - 安全（guardrails、prompt injection 防御）
 - 错误处理、重试、降级
 
-### 🎯 L8 应用层
-具体 agent 形态
-- 编码 agent（Claude Code、Cursor、Codex）
-- 浏览器 agent（Browserbase、Stagehand）
-- 研究 agent
-- 工作流自动化
-- 垂直应用（客服、销售、运维...）
-
-### 🟢 L9 Harness（系统工程）
+### 🟢 L8 Harness（系统工程）
 **定义**：包裹 LLM 的整个工程系统。*"Agent = Model + Harness"*（LangChain）
 
 **子组件**：
@@ -155,13 +147,21 @@ LLM 本身的能力边界
 
 **Mantra**: *"The harness is the new prompt."* —— 模型越来越强，harness 决定上限。
 
+### 🎯 L9 应用层
+具体 agent 形态（frontier）
+- 编码 agent（Claude Code、Cursor、Codex）
+- 浏览器 agent（Browserbase、Stagehand）
+- 研究 agent
+- 工作流自动化
+- 垂直应用（客服、销售、运维...）
+
 ---
 
 ## 跨层概念
 
 | 概念        | 涉及层             | 是什么                              |
 |-------------|--------------------|-------------------------------------|
-| **Context** | L2 + L4 + L9       | 实际送进 prompt 的全部内容（L9 主导）|
-| **Tool**    | L5 + L2 + L9       | 行动能力 + 调用约定 + 错误处理（L9 主导）|
-| **Trace**   | L7 + L9            | 全链路记录（L9 主导）               |
+| **Context** | L2 + L4 + L8       | 实际送进 prompt 的全部内容（L8 主导）|
+| **Tool**    | L5 + L2 + L8       | 行动能力 + 调用约定 + 错误处理（L8 主导）|
+| **Trace**   | L7 + L8            | 全链路记录（L8 主导）               |
 | **Eval**    | L7                 | 离线 + 在线，反馈循环               |

@@ -6,10 +6,17 @@
   <text x="450" y="60" text-anchor="middle" font-size="38" font-weight="800" fill="#0F172A">Agent Engineering Framework</text>
   <text x="450" y="92" text-anchor="middle" font-size="16" font-weight="500" fill="#64748B">9 Layers of Building LLM Agents</text>
 
-  <!-- L9 Harness Block (top) -->
+  <!-- L9 Application (top, frontier banner) -->
   <g transform="translate(60, 130)">
+    <rect width="780" height="56" rx="10" fill="#FF6B6B"/>
+    <text x="30" y="28" font-size="22" font-weight="700" fill="#FFFFFF">L9 Application</text>
+    <text x="30" y="48" font-size="13" font-weight="500" fill="#FFE5E5">Frontier · Claude Code · Devin · Codex · Browser agents · Research · Vertical apps</text>
+  </g>
+
+  <!-- L8 Harness Block -->
+  <g transform="translate(60, 206)">
     <rect width="780" height="270" rx="14" fill="#0FB5BA"/>
-    <text x="30" y="44" font-size="32" font-weight="800" fill="#FFFFFF">L9 HARNESS</text>
+    <text x="30" y="44" font-size="32" font-weight="800" fill="#FFFFFF">L8 HARNESS</text>
     <text x="30" y="74" font-size="15" font-weight="500" fill="#CCEFEF">Harness Engineering — the system wrapping the model</text>
 
     <!-- Sub-component pills -->
@@ -62,52 +69,46 @@
     </g>
   </g>
 
-  <!-- Stack of L8 down to L1 -->
-  <g transform="translate(60, 430)">
-    <!-- L8 -->
-    <g transform="translate(0, 0)">
-      <rect width="780" height="70" rx="10" fill="#FF6B6B"/>
-      <text x="30" y="32" font-size="20" font-weight="700" fill="#FFFFFF">L8 Application</text>
-      <text x="30" y="55" font-size="14" font-weight="500" fill="#FFE5E5">Coding agents · Browser agents · Research · Workflows · Vertical apps</text>
-    </g>
+  <!-- Stack of L7 down to L1 -->
+  <g transform="translate(60, 506)">
     <!-- L7 -->
-    <g transform="translate(0, 82)">
+    <g transform="translate(0, 0)">
       <rect width="780" height="70" rx="10" fill="#FF8A65"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#FFFFFF">L7 Production</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#FFE8DE">Observability · Evals · Cost · Latency · Caching · Safety</text>
     </g>
     <!-- L6 -->
-    <g transform="translate(0, 164)">
+    <g transform="translate(0, 82)">
       <rect width="780" height="70" rx="10" fill="#FFA07A"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#FFFFFF">L6 Orchestration</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#FFE9DC">Single agent · Supervisor · Swarm · Hierarchical · LangGraph · CrewAI</text>
     </g>
     <!-- L5 -->
-    <g transform="translate(0, 246)">
+    <g transform="translate(0, 164)">
       <rect width="780" height="70" rx="10" fill="#FFB088"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#FFFFFF">L5 Tools</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#FFEFE0">Function calling · MCP · Sandbox · Browser · GUI · Shell · FS</text>
     </g>
     <!-- L4 -->
-    <g transform="translate(0, 328)">
+    <g transform="translate(0, 246)">
       <rect width="780" height="70" rx="10" fill="#FFC1A0"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#3D2A1F">L4 Memory</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#5C3E2D">RAG · Vector DB · BM25 · Episodic vs Semantic · Summarization</text>
     </g>
     <!-- L3 -->
-    <g transform="translate(0, 410)">
+    <g transform="translate(0, 328)">
       <rect width="780" height="70" rx="10" fill="#FFD0B5"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#3D2A1F">L3 Reasoning</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#5C3E2D">CoT · ToT · ReAct · Plan-and-Execute · Reflexion · Task decomposition</text>
     </g>
     <!-- L2 -->
-    <g transform="translate(0, 492)">
+    <g transform="translate(0, 410)">
       <rect width="780" height="70" rx="10" fill="#FFDFC9"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#3D2A1F">L2 Interaction</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#5C3E2D">Messages · Prompt engineering · Function calling schema · Streaming</text>
     </g>
     <!-- L1 -->
-    <g transform="translate(0, 574)">
+    <g transform="translate(0, 492)">
       <rect width="780" height="70" rx="10" fill="#FFEEDD"/>
       <text x="30" y="32" font-size="20" font-weight="700" fill="#3D2A1F">L1 Model</text>
       <text x="30" y="55" font-size="14" font-weight="500" fill="#5C3E2D">GPT · Claude · Gemini · Mistral · Open source · Context window · Cost</text>
@@ -115,7 +116,7 @@
   </g>
 
   <!-- Footer -->
-  <text x="450" y="1110" text-anchor="middle" font-size="15" font-weight="600" fill="#64748B">L9 wraps L1-L8 — the system engineering layer</text>
+  <text x="450" y="1110" text-anchor="middle" font-size="15" font-weight="600" fill="#64748B">L8 Harness wraps L1-L7 — L9 Application is the frontier that emerges</text>
   <text x="450" y="1135" text-anchor="middle" font-size="12" fill="#94A3B8">Industry terms: Agent Harness (LangChain / MongoDB / Firecrawl / arXiv)</text>
   <text x="450" y="1160" text-anchor="middle" font-size="12" fill="#94A3B8">Created by Ori · 2026-06-14</text>
 </svg>

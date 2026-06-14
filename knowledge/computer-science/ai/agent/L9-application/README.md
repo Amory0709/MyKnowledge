@@ -1,15 +1,16 @@
-# L8 应用层
+# L9 应用层
 
-> 具体的 agent 形态
+> 具体的 agent 形态（frontier）
 
-**框架位置**：9 层中的第 8 层
-**详细内容**：[framework.md](../../framework.md#-l8-应用层)
+**框架位置**：9 层中的第 9 层（顶端 / 演进终点）
+**详细内容**：[framework.md](../../framework.md#-l9-应用层)
 
 ## 本层要回答的问题
 
 - 编码 agent 怎么设计？
 - 浏览器 agent 怎么设计？
 - 研究 / 客服 / 销售 agent 怎么设计？
+- 从零搭建 / DIY agent 怎么设计？
 
 ## 关键概念
 

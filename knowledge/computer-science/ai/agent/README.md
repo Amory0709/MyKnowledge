@@ -12,8 +12,8 @@
 
 | 层 | 文件夹 | 主题 |
 |---|---|---|
-| **L9** | [L9-harness/](./L9-harness/) | Harness（系统工程） |
-| **L8** | [L8-application/](./L8-application/) | 应用形态 |
+| **L9** | [L9-application/](./L9-application/) | 应用形态（frontier） |
+| **L8** | [L8-harness/](./L8-harness/) | Harness（系统工程） |
 | **L7** | [L7-production/](./L7-production/) | 生产化 |
 | **L6** | [L6-orchestration/](./L6-orchestration/) | 编排 |
 | **L5** | [L5-tools/](./L5-tools/) | 工具 |
@@ -34,8 +34,8 @@
 
 | 层 | 名称 | 一句话 |
 |---|---|---|
-| **L9** | Harness | 包裹 LLM 的整个工程系统 |
-| L8 | 应用 | 具体 agent 形态 |
+| **L8** | Harness | 包裹 LLM 的整个工程系统 |
+| **L9** | 应用 | 具体 agent 形态（frontier） |
 | L7 | 生产 | 可观测性 / 评估 / 成本 / 安全 |
 | L6 | 编排 | 多 agent 协作 + 框架 |
 | L5 | 工具 | Function calling / MCP / 沙箱 |
@@ -65,17 +65,17 @@
 ### 归档示例
 
 **新论文："Agent self-correction via trajectory reflection"**
-- 主落点：L9 Harness > Verification & Safety
+- 主落点：L8 Harness > Verification & Safety
 - 跨层：L3 推理 > Reflexion、L7 生产 > Eval
 - 标签：⭐ 必学
 
 **新发布："LangGraph v2 with built-in checkpointing"**
-- 主落点：L9 Harness > State & Memory > Checkpoint
+- 主落点：L8 Harness > State & Memory > Checkpoint
 - 跨层：L6 编排（框架）、L7 生产
 - 标签：📖 感兴趣
 
 **新工具："MCP - Model Context Protocol"**
-- 主落点：L9 Harness > Tool Orchestration
+- 主落点：L8 Harness > Tool Orchestration
 - 跨层：L5 工具（schema）
 - 标签：⭐ 必学
 
