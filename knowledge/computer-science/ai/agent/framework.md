@@ -11,45 +11,47 @@
 不是"9 层堆在一起"，而是**一步一步加能力**。每一"+X"都是对前一阶段限制的回应：
 
 ```
-LLM                                              2020
-  │ + Prompt Engineering                        2022
-  ▼                                                (CoT, system prompt)
+LLM                                              Jun 2020
+  │ + Prompt Engineering                        Jan 2022
+  ▼                                                (CoT paper)
 Prompted LLM
-  │ + Tool Use / Function Calling               2023
-  ▼
-Tool-Using LLM
-  │ + Agentic Loop (ReAct)                      2023
-  ▼
+  │ + Memory / RAG                              May 2020 (paper)
+  ▼                                                (2022-23 in agent context)
+RAG-Augmented LLM
+  │ + Tool + Loop                               Oct 2022
+  ▼                                                (ReAct — BOTH together)
 Single Agent
-  │ + Memory / RAG                              2023-24
-  ▼
-Persistent Agent
-  │ + Multi-Agent Orchestration                 2024
-  ▼
+  │ + Tool API Standardization                  Jun 2023
+  ▼                                                (OpenAI Function Calling)
+Tool-Standardized Agent
+  │ + Multi-Agent Orchestration                 Aug-Dec 2023
+  ▼                                                (AutoGen, CrewAI)
 Multi-Agent System
-  │ + Harness Engineering                       2024-25
-  ▼
+  │ + Harness Engineering                       Feb-Mar 2025
+  ▼                                                (Claude Code, OpenAI Agents SDK)
 Production-Grade Agent  ← 今天的 frontier
-                              (Claude Code, Devin, Codex)
+                              (Devin Mar 2024, Codex CLI Apr 2025)
 ```
 
 ### 8 阶段详解
 
-| # | 阶段 | 时期 | 加了什么 | 框架层 | 解决什么问题 | 代表里程碑 |
+| # | 阶段 | 日期 | 加了什么 | 框架层 | 解决什么问题 | 代表里程碑 + 引用 |
 |---|---|---|---|---|---|---|
-| 1 | **LLM** | 2020-22 | 基础文本生成 | L1 | — | GPT-3 (2020) |
-| 2 | **+ Prompt** | 2022-23 | 行为塑形 | L2 | LLM 太"原始" | CoT (Jan 2022) |
-| 3 | **+ Tool** | 2023 | 行动能力 | L5 | LLM 只能说不能做 | Function Calling (2023) |
-| 4 | **+ Loop** | 2023 | 自主循环 | L8 > Loop | 单次回答不能完成多步 | ReAct (2022 paper, 2023 落地) |
-| 5 | **+ Memory** | 2023-24 | 持续记忆 | L4 | agent 每次从零开始 | RAG, vector DB |
-| 6 | **+ Multi** | 2024 | 多 agent 协作 | L6 | 单 agent 处理不了复杂任务 | AutoGen, CrewAI (2024) |
-| 7 | **+ Harness** | 2024-25 | 系统工程 | L8 | 整套 agent 跑不稳 | ECC, Claude Code, OpenAI Agents SDK |
-| 8 | **= Frontier** | 2026+ | 生产级应用 | L9 | — | Claude Code, Devin, Codex |
+| 1 | **LLM** | Jun 2020 | 基础文本生成 | L1 | — | GPT-3 — [OpenAI](https://openai.com/blog/language-unsupervised/) |
+| 2 | **+ Prompt** | Jan 2022 | 行为塑形 | L2 | LLM 太"原始" | Chain-of-Thought — [Wei et al., arXiv:2201.11903](https://arxiv.org/abs/2201.11903) |
+| 3 | **+ Memory** | May 2020 (paper) | 持续记忆 + 外部知识 | L4 | agent 每次从零开始 | RAG — [Lewis et al., NeurIPS 2020](https://proceedings.neurips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf) |
+| 4 | **+ Tool+Loop** | Oct 2022 | 行动能力 + 自主循环 | L5 + L8 > Loop | 单次回答不能完成多步任务 | ReAct — [Yao et al., arXiv:2210.03629](https://arxiv.org/abs/2210.03629) |
+| 5 | **+ Tool API** | Jun 2023 | 工具调用 API 标准化 | L5 | ReAct 时代工具调用不标准化 | OpenAI Function Calling — [OpenAI blog](https://openai.com/index/function-calling-and-other-api-updates/) |
+| 6 | **+ Multi** | Aug-Dec 2023 | 多 agent 协作 | L6 | 单 agent 处理不了复杂任务 | AutoGen (Aug 2023) · CrewAI (Dec 2023) — [Microsoft Research](https://www.microsoft.com/en-us/research/project/autogen/publications/) · [Wikipedia](https://en.wikipedia.org/wiki/CrewAI) |
+| 7 | **+ Harness** | Feb-Mar 2025 | 系统工程 (context/state/safety) | L8 | 整套 agent 跑不稳 | Claude Code beta (Feb 2025) · OpenAI Agents SDK (Mar 2025) — [Claude Code](https://aiwiki.ai/wiki/claude_code) · [Agents SDK](https://aiwiki.ai/wiki/openai_agents_sdk) |
+| 8 | **= Frontier** | Mar 2024+ | 生产级应用 | L9 | — | Devin (Mar 2024) · Codex CLI (Apr 2025) — [Cognition Labs](https://aiwiki.ai/wiki/devin) · [Codex CLI](https://aiwiki.ai/wiki/codex_cli) |
 
 ### 关键洞察
 
 - **L8 Harness 不是一开始就有**——它是其他层成熟后**事后总结的纪律**，不是设计的起点
-- 每一"+X"都是对前一阶段**实际限制**的回应（LLM 不够好 → 加 prompt；单次回答不够 → 加 loop；agent 失忆 → 加 memory）
+- **ReAct 同时引入了 tool + loop**——两者是耦合发明的，后来 Function Calling 才把 tool 调用标准化
+- **RAG 的 paper 比 CoT 还早**（2020 vs 2022），但 RAG 在 LLM agent 上下文流行起来是 2022-23（LangChain 时代）
+- **每一"+X"都是对前一阶段实际限制的回应**（LLM 不够好 → 加 prompt；单次回答不够 → 加 loop；agent 失忆 → 加 memory）
 - **9 层是横向切面**（同时存在的组件），**演进是纵向时序**（先后发明的历史）—— 两种视图互补
 - 你现在学 agent，本质是**从 L1 出发，按这张演进图逐层补上**
 
